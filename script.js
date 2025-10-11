@@ -1,6 +1,12 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+const startScreen = document.getElementById('startScreen');
+const gameOverScreen = document.getElementById('gameOverScreen');
+const startButton = document.getElementById('startButton');
+const restartButton = document.getElementById('restartButton');
+const finalScoreDisplay = document.getElementById('finalScore');
+
 // Game variables
 const birdSize = 35;
 let birdX = 50;
@@ -9,13 +15,13 @@ let velocity = 0;
 const gravity = 0.6;
 const jumpStrength = -10;
 
-const pipeWidth = 50;
+const pipeWidth = 60;
 const pipeGap = 150;
 const pipeSpeed = 3;
 let pipes = [];
 
 let score = 0;
-let gameOver = false;
+let gameState = 'start'; // 'start', 'playing', 'gameOver'
 
 // Set canvas size
 function setCanvasSize() {
@@ -54,39 +60,89 @@ function drawHeart(x, y, size, fillGradient) {
 
 // Draw functions (updated to use new assets)
 function drawBird() {
-    // Create the pink-to-red gradient for the heart
     const heartGradient = ctx.createLinearGradient(birdX, birdY, birdX, birdY + birdSize);
     heartGradient.addColorStop(0, 'pink');
     heartGradient.addColorStop(1, 'red');
-
     drawHeart(birdX + birdSize / 2, birdY, birdSize, heartGradient);
 }
 
 function drawPipes() {
-    ctx.fillStyle = 'rgba(255, 140, 0, 0.6)'; // Semi-transparent dark orange for dimmed look
     pipes.forEach(pipe => {
+        // Draw top pipe
+        ctx.fillStyle = 'rgba(255, 140, 0, 0.6)';
         ctx.fillRect(pipe.x, pipe.y, pipeWidth, pipe.height);
+        ctx.fillRect(pipe.x - 5, pipe.y + pipe.height - 20, pipeWidth + 10, 20); // Top lip
+
+        // Draw bottom pipe
         ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, pipeWidth, canvas.height - (pipe.height + pipeGap));
+        ctx.fillRect(pipe.x - 5, pipe.y + pipe.height + pipeGap, pipeWidth + 10, 20); // Bottom lip
     });
 }
 
 function drawScore() {
-    ctx.fillStyle = '#fff'; // White text for better contrast
-    ctx.font = '24px Arial';
-    ctx.fillText('Score: ' + score, 10, 30);
+    // Check if a score container already exists, if not, create one
+    if (!document.querySelector('.score-container')) {
+        const scoreContainer = document.createElement('div');
+        scoreContainer.classList.add('score-container');
+        document.body.appendChild(scoreContainer);
+    }
+    document.querySelector('.score-container').textContent = score;
 }
 
-function drawGameOver() {
-    ctx.fillStyle = '#fff'; // White text for better contrast
-    ctx.font = '36px Arial';
-    ctx.fillText('Game Over', canvas.width / 2 - 90, canvas.height / 2);
-    ctx.font = '24px Arial';
-    ctx.fillText('Click to Restart', canvas.width / 2 - 90, canvas.height / 2 + 40);
+// UI Management
+function showStartScreen() {
+    startScreen.classList.remove('hidden');
+    gameOverScreen.classList.add('hidden');
+    // Hide score container
+    const scoreContainer = document.querySelector('.score-container');
+    if (scoreContainer) scoreContainer.style.display = 'none';
 }
 
-// Game logic (remains mostly the same)
+function hideAllScreens() {
+    startScreen.classList.add('hidden');
+    gameOverScreen.classList.add('hidden');
+    // Show score container
+    const scoreContainer = document.querySelector('.score-container');
+    if (scoreContainer) scoreContainer.style.display = 'block';
+}
+
+function showGameOverScreen() {
+    gameOverScreen.classList.remove('hidden');
+    finalScoreDisplay.textContent = score;
+    // Hide score container
+    const scoreContainer = document.querySelector('.score-container');
+    if (scoreContainer) scoreContainer.style.display = 'none';
+}
+
+// Game flow
+function jump() {
+    if (gameState === 'playing') {
+        velocity = jumpStrength;
+    }
+}
+
+function startGame() {
+    gameState = 'playing';
+    resetGame();
+    hideAllScreens();
+    gameLoop();
+}
+
+function endGame() {
+    gameState = 'gameOver';
+    showGameOverScreen();
+}
+
+function resetGame() {
+    birdY = 250;
+    velocity = 0;
+    pipes = [];
+    score = 0;
+}
+
+// Game logic
 function update() {
-    if (gameOver) return;
+    if (gameState !== 'playing') return;
 
     // Bird movement
     velocity += gravity;
@@ -108,19 +164,19 @@ function update() {
         pipes.push({ x: canvas.width, y: 0, height: pipeHeight, passed: false });
     }
 
-    // Update score logic
+    // Update score
     pipes.forEach(pipe => {
         if (pipe.x + pipeWidth < birdX && !pipe.passed) {
             score++;
             pipe.passed = true;
         }
     });
-
-    // Remove old pipes
+    
+    // Remove off-screen pipes
     if (pipes.length > 0 && pipes.x < -pipeWidth) {
         pipes.shift();
     }
-    
+
     // Check pipe collision
     pipes.forEach(pipe => {
         if (
@@ -133,21 +189,20 @@ function update() {
     });
 }
 
+function gameLoop() {
+    if (gameState === 'playing' || gameState === 'gameOver') {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        update();
+        drawPipes();
+        drawBird();
+        if (gameState === 'playing') {
+            drawScore();
+        }
+        requestAnimationFrame(gameLoop);
+    }
+}
+
 // Event listeners
-function jump() {
-    if (!gameOver) {
-        velocity = jumpStrength;
-    }
-}
-
-function handleInput() {
-    if (gameOver) {
-        resetGame();
-    } else {
-        jump();
-    }
-}
-
 document.addEventListener('keydown', (e) => {
     if (e.code === 'Space') {
         handleInput();
@@ -158,31 +213,14 @@ document.addEventListener('mousedown', () => {
     handleInput();
 });
 
-// Game flow
-function endGame() {
-    gameOver = true;
-}
+startButton.addEventListener('click', startGame);
+restartButton.addEventListener('click', startGame);
 
-function resetGame() {
-    birdY = 250;
-    velocity = 0;
-    pipes = [];
-    score = 0;
-    gameOver = false;
-    gameLoop();
-}
-
-function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    update();
-    drawPipes();
-    drawBird();
-    drawScore();
-    if (gameOver) {
-        drawGameOver();
+function handleInput() {
+    if (gameState === 'playing') {
+        jump();
     }
-    requestAnimationFrame(gameLoop);
 }
 
-// Start the game
-gameLoop();
+// Start the game loop on first load
+showStartScreen();
