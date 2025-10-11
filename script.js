@@ -18,13 +18,13 @@ const heartSize = 35;
 let heartX = 50;
 let heartY = 250;
 let velocity = 0;
-const gravity = 0.4;
-const jumpStrength = -8;
+const gravity = 0.25;
+const jumpStrength = -6;
 
 const pipeWidth = 60;
 const pipeGap = 180;
 const pipeSpacing = 250;
-const pipeSpeed = 2.5;
+const pipeSpeed = 1.8;
 let pipes = [];
 
 let score = 0;
@@ -38,7 +38,6 @@ function setCanvasSize() {
 setCanvasSize();
 
 function drawBackground() {
-  // Layered sunset gradient
   const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
   skyGradient.addColorStop(0, '#fddde6');
   skyGradient.addColorStop(0.3, '#fbb8c1');
@@ -48,7 +47,6 @@ function drawBackground() {
   ctx.fillStyle = skyGradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Sun
   const sunX = canvas.width / 2;
   const sunY = canvas.height * 0.85;
   const sunRadius = 40;
@@ -58,7 +56,6 @@ function drawBackground() {
   ctx.fillStyle = '#fff1a8';
   ctx.fill();
 
-  // Sun glow
   const glowGradient = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunRadius * 2);
   glowGradient.addColorStop(0, 'rgba(255, 241, 168, 0.4)');
   glowGradient.addColorStop(1, 'rgba(255, 241, 168, 0)');
@@ -75,22 +72,38 @@ function drawHeart() {
 function drawPipes() {
   pipes.forEach(pipe => {
     ctx.imageSmoothingEnabled = false;
+
+    // Base pipe
     ctx.fillStyle = '#a8d5a2';
     ctx.strokeStyle = '#6c9c6b';
     ctx.lineWidth = 1;
 
-    // Top pipe
     ctx.beginPath();
     ctx.rect(pipe.x, pipe.y, pipeWidth, pipe.height);
     ctx.fill();
     ctx.stroke();
 
+    // Lighting: left highlight
+    ctx.fillStyle = '#cbeac0';
+    ctx.fillRect(pipe.x, pipe.y, 4, pipe.height);
+
+    // Lighting: right shadow
+    ctx.fillStyle = '#7fa87a';
+    ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y, 4, pipe.height);
+
     // Bottom pipe
     const bottomY = pipe.y + pipe.height + pipeGap;
+    ctx.fillStyle = '#a8d5a2';
     ctx.beginPath();
     ctx.rect(pipe.x, bottomY, pipeWidth, canvas.height - bottomY);
     ctx.fill();
     ctx.stroke();
+
+    // Bottom lighting
+    ctx.fillStyle = '#cbeac0';
+    ctx.fillRect(pipe.x, bottomY, 4, canvas.height - bottomY);
+    ctx.fillStyle = '#7fa87a';
+    ctx.fillRect(pipe.x + pipeWidth - 4, bottomY, 4, canvas.height - bottomY);
   });
 }
 
