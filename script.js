@@ -18,8 +18,8 @@ const heartSize = 35;
 let heartX = 50;
 let heartY = 250;
 let velocity = 0;
-const gravity = 0.25;
-const jumpStrength = -6;
+let gravity = 0.25;
+let jumpStrength = -6;
 
 const pipeWidth = 60;
 const pipeGap = 180;
@@ -30,6 +30,7 @@ let pipes = [];
 let score = 0;
 let gameState = 'start';
 let loopId = null;
+let highScore = localStorage.getItem('flappyHighScore') || 0;
 
 function setCanvasSize() {
   canvas.width = 400;
@@ -48,7 +49,6 @@ function drawBackground() {
     }
   });
 
-  // 8-bit sun
   const sunX = canvas.width / 2;
   const sunY = canvas.height * 0.85;
   const sunSize = 40;
@@ -71,17 +71,14 @@ function drawPipes() {
   pipes.forEach(pipe => {
     ctx.imageSmoothingEnabled = false;
 
-    // Base pipe
     ctx.fillStyle = '#a8d5a2';
     ctx.fillRect(pipe.x, pipe.y, pipeWidth, pipe.height);
     ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, pipeWidth, canvas.height - (pipe.y + pipe.height + pipeGap));
 
-    // Left highlight
     ctx.fillStyle = '#cbeac0';
     ctx.fillRect(pipe.x, pipe.y, 4, pipe.height);
     ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, 4, canvas.height - (pipe.y + pipe.height + pipeGap));
 
-    // Right shadow
     ctx.fillStyle = '#7fa87a';
     ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y, 4, pipe.height);
     ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y + pipe.height + pipeGap, 4, canvas.height - (pipe.y + pipe.height + pipeGap));
@@ -96,6 +93,18 @@ function showStartScreen() {
   startScreen.classList.remove('hidden');
   gameOverScreen.classList.add('hidden');
   document.querySelector('.score-container').style.display = 'none';
+
+  const existingHighScore = document.getElementById('startHighScore');
+  if (!existingHighScore) {
+    const highScoreElement = document.createElement('p');
+    highScoreElement.id = 'startHighScore';
+    highScoreElement.textContent = `High Score: ${highScore}`;
+    highScoreElement.style.marginTop = '15px';
+    highScoreElement.style.color = '#666';
+    startScreen.appendChild(highScoreElement);
+  } else {
+    existingHighScore.textContent = `High Score: ${highScore}`;
+  }
 }
 
 function hideAllScreens() {
@@ -107,6 +116,19 @@ function hideAllScreens() {
 function showGameOverScreen() {
   gameOverScreen.classList.remove('hidden');
   finalScoreDisplay.textContent = score;
+
+  const existingHighScore = document.getElementById('gameHighScore');
+  if (!existingHighScore) {
+    const highScoreElement = document.createElement('p');
+    highScoreElement.id = 'gameHighScore';
+    highScoreElement.textContent = `High Score: ${highScore}`;
+    highScoreElement.style.marginTop = '10px';
+    highScoreElement.style.color = '#666';
+    gameOverScreen.appendChild(highScoreElement);
+  } else {
+    existingHighScore.textContent = `High Score: ${highScore}`;
+  }
+
   document.querySelector('.score-container').style.display = 'none';
   gameOverSound.play();
 }
@@ -131,10 +153,18 @@ function resetGame() {
   velocity = 0;
   pipes = [];
   score = 0;
+  gravity = 0.25;
+  jumpStrength = -6;
 }
 
 function endGame() {
   gameState = 'gameOver';
+
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('flappyHighScore', highScore);
+  }
+
   showGameOverScreen();
 }
 
@@ -160,6 +190,11 @@ function update() {
       score++;
       pipe.passed = true;
       scoreSound.play();
+
+      if (score % 2 === 0) {
+        gravity *= 1.2;
+        jumpStrength *= 1.2;
+      }
     }
   });
 
