@@ -38,31 +38,29 @@ function setCanvasSize() {
 setCanvasSize();
 
 function drawBackground() {
-  const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  skyGradient.addColorStop(0, '#fddde6');
-  skyGradient.addColorStop(0.3, '#fbb8c1');
-  skyGradient.addColorStop(0.6, '#fca3a3');
-  skyGradient.addColorStop(0.8, '#fcbf85');
-  skyGradient.addColorStop(1, '#fff1a8');
-  ctx.fillStyle = skyGradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const colors = ['#fddde6', '#fbb8c1', '#fca3a3', '#fcbf85', '#fff1a8'];
+  const bandHeight = Math.floor(canvas.height / colors.length);
 
+  colors.forEach((color, i) => {
+    ctx.fillStyle = color;
+    for (let y = 0; y < bandHeight; y += 4) {
+      ctx.fillRect(0, i * bandHeight + y, canvas.width, 4);
+    }
+  });
+
+  // 8-bit sun
   const sunX = canvas.width / 2;
   const sunY = canvas.height * 0.85;
-  const sunRadius = 40;
+  const sunSize = 40;
 
-  ctx.beginPath();
-  ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
   ctx.fillStyle = '#fff1a8';
-  ctx.fill();
-
-  const glowGradient = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunRadius * 2);
-  glowGradient.addColorStop(0, 'rgba(255, 241, 168, 0.4)');
-  glowGradient.addColorStop(1, 'rgba(255, 241, 168, 0)');
-  ctx.fillStyle = glowGradient;
-  ctx.beginPath();
-  ctx.arc(sunX, sunY, sunRadius * 2, 0, Math.PI * 2);
-  ctx.fill();
+  for (let y = -sunSize; y <= sunSize; y += 4) {
+    for (let x = -sunSize; x <= sunSize; x += 4) {
+      if (x * x + y * y <= sunSize * sunSize) {
+        ctx.fillRect(sunX + x, sunY + y, 4, 4);
+      }
+    }
+  }
 }
 
 function drawHeart() {
@@ -75,35 +73,18 @@ function drawPipes() {
 
     // Base pipe
     ctx.fillStyle = '#a8d5a2';
-    ctx.strokeStyle = '#6c9c6b';
-    ctx.lineWidth = 1;
+    ctx.fillRect(pipe.x, pipe.y, pipeWidth, pipe.height);
+    ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, pipeWidth, canvas.height - (pipe.y + pipe.height + pipeGap));
 
-    ctx.beginPath();
-    ctx.rect(pipe.x, pipe.y, pipeWidth, pipe.height);
-    ctx.fill();
-    ctx.stroke();
-
-    // Lighting: left highlight
+    // Left highlight
     ctx.fillStyle = '#cbeac0';
     ctx.fillRect(pipe.x, pipe.y, 4, pipe.height);
+    ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, 4, canvas.height - (pipe.y + pipe.height + pipeGap));
 
-    // Lighting: right shadow
+    // Right shadow
     ctx.fillStyle = '#7fa87a';
     ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y, 4, pipe.height);
-
-    // Bottom pipe
-    const bottomY = pipe.y + pipe.height + pipeGap;
-    ctx.fillStyle = '#a8d5a2';
-    ctx.beginPath();
-    ctx.rect(pipe.x, bottomY, pipeWidth, canvas.height - bottomY);
-    ctx.fill();
-    ctx.stroke();
-
-    // Bottom lighting
-    ctx.fillStyle = '#cbeac0';
-    ctx.fillRect(pipe.x, bottomY, 4, canvas.height - bottomY);
-    ctx.fillStyle = '#7fa87a';
-    ctx.fillRect(pipe.x + pipeWidth - 4, bottomY, 4, canvas.height - bottomY);
+    ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y + pipe.height + pipeGap, 4, canvas.height - (pipe.y + pipe.height + pipeGap));
   });
 }
 
