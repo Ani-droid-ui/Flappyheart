@@ -84,4 +84,97 @@ function hideAllScreens() {
 function showGameOverScreen() {
     gameOverScreen.classList.remove('hidden');
     finalScoreDisplay.textContent = score;
-    const scoreContainer = document.querySelector('.
+    const scoreContainer = document.querySelector('.score-container');
+    if (scoreContainer) scoreContainer.style.display = 'none';
+    gameOverSound.play();
+}
+
+function jump() {
+    if (gameState === 'playing') {
+        velocity = jumpStrength;
+        jumpSound.play();
+    }
+}
+
+function startGame() {
+    gameState = 'playing';
+    resetGame();
+    hideAllScreens();
+    gameLoop();
+}
+
+function endGame() {
+    gameState = 'gameOver';
+    showGameOverScreen();
+}
+
+function resetGame() {
+    heartY = 250;
+    velocity = 0;
+    pipes = [];
+    score = 0;
+}
+
+function update() {
+    if (gameState !== 'playing') return;
+
+    velocity += gravity;
+    heartY += velocity;
+
+    if (heartY + heartSize > canvas.height || heartY < 0) {
+        endGame();
+    }
+
+    pipes.forEach(pipe => pipe.x -= pipeSpeed);
+
+    if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 200) {
+        const pipeHeight = Math.floor(Math.random() * (canvas.height - pipeGap - 100)) + 50;
+        pipes.push({ x: canvas.width, y: 0, height: pipeHeight, passed: false });
+    }
+
+    pipes.forEach(pipe => {
+        if (pipe.x + pipeWidth < heartX && !pipe.passed) {
+            score++;
+            pipe.passed = true;
+            scoreSound.play();
+        }
+    });
+
+    if (pipes.length > 0 && pipes[0].x < -pipeWidth) {
+        pipes.shift();
+    }
+
+    pipes.forEach(pipe => {
+        if (
+            heartX < pipe.x + pipeWidth &&
+            heartX + heartSize > pipe.x &&
+            (heartY < pipe.y + pipe.height || heartY + heartSize > pipe.y + pipe.height + pipeGap)
+        ) {
+            endGame();
+        }
+    });
+}
+
+function gameLoop() {
+    if (gameState === 'playing' || gameState === 'gameOver') {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        update();
+        drawPipes();
+        drawHeart();
+        if (gameState === 'playing') drawScore();
+        requestAnimationFrame(gameLoop);
+    }
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') handleInput();
+});
+document.addEventListener('mousedown', handleInput);
+startButton.addEventListener('click', startGame);
+restartButton.addEventListener('click', startGame);
+
+function handleInput() {
+    if (gameState === 'playing') jump();
+}
+
+showStartScreen();
