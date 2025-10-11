@@ -202,15 +202,15 @@ function update() {
   }
 
   pipes.forEach(pipe => {
-    if (pipe.x + pipeWidth < heartX && !pipe.passed) {
-      score++;
-      pipe.passed = true;
-      scoreSound.play();
+if (pipe.x + pipeWidth < heartX && !pipe.passed) {
+  score++;
+  pipe.passed = true;
+  scoreSound.play();
 
-      if (score % 2 === 0) {
-        currentPipeSpeed += 0.2;
-      }
-    }
+  if (score % 2 === 0) {
+    currentPipeSpeed += 0.02;
+  }
+}
   });
 
   if (pipes.length > 0 && pipes[0].x < -pipeWidth) {
