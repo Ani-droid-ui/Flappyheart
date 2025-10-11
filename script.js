@@ -7,10 +7,10 @@ const startButton = document.getElementById('startButton');
 const restartButton = document.getElementById('restartButton');
 const finalScoreDisplay = document.getElementById('finalScore');
 
-// Sounds
-const jumpSound = new Audio('assets/jump.wav');
-const scoreSound = new Audio('assets/score.wav');
-const gameOverSound = new Audio('assets/gameover.wav');
+// Sound effects (.mp3 versions)
+const jumpSound = new Audio('assets/jump.mp3');
+const scoreSound = new Audio('assets/score.mp3');
+const gameOverSound = new Audio('assets/gameover.mp3');
 
 // Game variables
 const heartSize = 35;
