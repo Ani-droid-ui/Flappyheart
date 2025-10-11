@@ -1,3 +1,4 @@
+/* Base Layout */
 body {
   margin: 0;
   padding: 0;
@@ -5,25 +6,12 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: repeating-linear-gradient(
-    to bottom,
-    #ff5e5b 0px,
-    #ff5e5b 20px,
-    #ff774e 20px,
-    #ff774e 40px,
-    #ff9966 40px,
-    #ff9966 60px,
-    #ffcc70 60px,
-    #ffcc70 80px,
-    #ffe29a 80px,
-    #ffe29a 100px,
-    #fef9d7 100px,
-    #fef9d7 120px
-  );
+  background-color: #000; /* fallback */
   font-family: 'Press Start 2P', cursive;
   overflow: hidden;
 }
 
+/* Canvas Styling */
 canvas {
   border: 3px solid #ccc;
   background-color: transparent;
@@ -32,6 +20,7 @@ canvas {
   transition: all 0.3s ease;
 }
 
+/* Overlay Screens */
 .overlay {
   position: absolute;
   top: 50%;
@@ -54,6 +43,7 @@ canvas {
   transform: translate(-50%, -50%) scale(0.9);
 }
 
+/* Overlay Text */
 .overlay h1 {
   font-size: 2em;
   margin-bottom: 20px;
@@ -67,6 +57,7 @@ canvas {
   color: #555;
 }
 
+/* Buttons */
 .button {
   background: linear-gradient(145deg, #f8c8dc, #f6b8b8);
   border: 2px solid #eee;
@@ -92,6 +83,7 @@ canvas {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Score Display */
 .score-container {
   position: absolute;
   top: 20px;
