@@ -1,3 +1,4 @@
+/* Base layout */
 body {
   margin: 0;
   padding: 0;
@@ -8,21 +9,24 @@ body {
   background-color: #fef6f6;
   background-image:
     linear-gradient(to bottom, #fef6f6 0%, #fbecec 100%),
-    url('https://opengameart.org/sites/default/files/blossom_tree_pixel.png'); /* Replace with your preferred pixel tree */
+    url('https://opengameart.org/sites/default/files/blossom_tree_pixel.png');
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: cover;
   font-family: 'Press Start 2P', cursive;
   overflow: hidden;
+  touch-action: manipulation;
 }
 
+/* Game canvas */
 canvas {
   border: 3px solid #dcdcdc;
   background-color: transparent;
   image-rendering: pixelated;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 12px rgba(255, 105, 180, 0.3); /* hot pink glow */
 }
 
+/* Overlay screens */
 .overlay {
   position: absolute;
   top: 50%;
@@ -36,6 +40,7 @@ canvas {
   border-radius: 12px;
   box-shadow: 0 0 10px rgba(200, 200, 200, 0.3);
   backdrop-filter: blur(4px);
+  z-index: 20;
 }
 
 .overlay.hidden {
@@ -44,6 +49,7 @@ canvas {
   transform: translate(-50%, -50%) scale(0.9);
 }
 
+/* Overlay text */
 .overlay h1 {
   font-size: 2em;
   margin-bottom: 20px;
@@ -57,6 +63,7 @@ canvas {
   color: #666;
 }
 
+/* Buttons */
 .button {
   background: linear-gradient(145deg, #f6d6d6, #f2cfcf);
   border: 2px solid #eee;
@@ -81,6 +88,7 @@ canvas {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+/* Score display */
 .score-container {
   position: absolute;
   top: 20px;
