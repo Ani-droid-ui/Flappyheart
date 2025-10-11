@@ -202,15 +202,15 @@ function update() {
   }
 
   pipes.forEach(pipe => {
-if (pipe.x + pipeWidth < heartX && !pipe.passed) {
-  score++;
-  pipe.passed = true;
-  scoreSound.play();
+    if (pipe.x + pipeWidth < heartX && !pipe.passed) {
+      score++;
+      pipe.passed = true;
+      scoreSound.play();
 
-  if (score % 2 === 0) {
-    currentPipeSpeed += 0.02;
-  }
-}
+      if (score % 2 === 0) {
+        currentPipeSpeed += 0.02;
+      }
+    }
   });
 
   if (pipes.length > 0 && pipes[0].x < -pipeWidth) {
@@ -230,10 +230,21 @@ if (pipe.x + pipeWidth < heartX && !pipe.passed) {
   // Pellet logic
   pellets.forEach(p => p.x -= currentPipeSpeed);
 
-  if (Math.random() < 0.01) {
+  if (Math.random() < 0.01 && pipes.length > 0) {
+    const lastPipe = pipes[pipes.length - 1];
+    const safeMargin = 10;
+
+    const safeZones = [
+      { min: 0, max: lastPipe.height - pelletSize - safeMargin },
+      { min: lastPipe.height + pipeGap + safeMargin, max: canvas.height - pelletSize }
+    ];
+
+    const zone = safeZones[Math.floor(Math.random() * safeZones.length)];
+    const pelletY = Math.random() * (zone.max - zone.min) + zone.min;
+
     pellets.push({
       x: canvas.width,
-      y: Math.random() * (canvas.height - pelletSize),
+      y: pelletY,
       collected: false
     });
   }
@@ -281,3 +292,4 @@ function handleInput() {
 }
 
 showStartScreen();
+
