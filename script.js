@@ -18,13 +18,14 @@ const heartSize = 35;
 let heartX = 50;
 let heartY = 250;
 let velocity = 0;
-let gravity = 0.25;
-let jumpStrength = -6;
+const gravity = 0.25;
+const jumpStrength = -6;
 
 const pipeWidth = 60;
 const pipeGap = 180;
 const pipeSpacing = 250;
-const pipeSpeed = 1.8;
+const basePipeSpeed = 1.8;
+let currentPipeSpeed = basePipeSpeed;
 let pipes = [];
 
 let score = 0;
@@ -153,8 +154,7 @@ function resetGame() {
   velocity = 0;
   pipes = [];
   score = 0;
-  gravity = 0.25;
-  jumpStrength = -6;
+  currentPipeSpeed = basePipeSpeed;
 }
 
 function endGame() {
@@ -178,7 +178,7 @@ function update() {
     endGame();
   }
 
-  pipes.forEach(pipe => pipe.x -= pipeSpeed);
+  pipes.forEach(pipe => pipe.x -= currentPipeSpeed);
 
   if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeSpacing) {
     const pipeHeight = Math.floor(Math.random() * (canvas.height - pipeGap - 100)) + 50;
@@ -191,9 +191,8 @@ function update() {
       pipe.passed = true;
       scoreSound.play();
 
-      // Increase difficulty every pipe passed
-      gravity *= 1.5;
-      jumpStrength *= 1.5;
+      // Increase pipe speed every pipe passed
+      currentPipeSpeed *= 1.5;
     }
   });
 
