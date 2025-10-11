@@ -55,7 +55,7 @@ function drawPipes() {
         gradient.addColorStop(1, '#7ec8a9');
         ctx.fillStyle = gradient;
 
-        // Rounded top pipe
+        // Top pipe
         ctx.beginPath();
         ctx.moveTo(pipe.x, pipe.y);
         ctx.lineTo(pipe.x + pipeWidth, pipe.y);
@@ -64,7 +64,7 @@ function drawPipes() {
         ctx.closePath();
         ctx.fill();
 
-        // Rounded bottom pipe
+        // Bottom pipe
         const bottomY = pipe.y + pipe.height + pipeGap;
         ctx.beginPath();
         ctx.moveTo(pipe.x, bottomY);
