@@ -37,15 +37,13 @@ function setCanvasSize() {
 setCanvasSize();
 
 function drawBackground() {
-  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, '#ff5e5b');
-  gradient.addColorStop(0.2, '#ff774e');
-  gradient.addColorStop(0.4, '#ff9966');
-  gradient.addColorStop(0.6, '#ffcc70');
-  gradient.addColorStop(0.8, '#ffe29a');
-  gradient.addColorStop(1, '#fef9d7');
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const colors = ['#fddde6', '#fbb8c1', '#fca3a3', '#fcbf85', '#fff1a8'];
+  const bandHeight = canvas.height / colors.length;
+
+  colors.forEach((color, i) => {
+    ctx.fillStyle = color;
+    ctx.fillRect(0, i * bandHeight, canvas.width, bandHeight);
+  });
 }
 
 function drawHeart() {
@@ -54,18 +52,19 @@ function drawHeart() {
 
 function drawPipes() {
   pipes.forEach(pipe => {
-    const gradient = ctx.createLinearGradient(pipe.x, 0, pipe.x, canvas.height);
-    gradient.addColorStop(0, '#4CAF50');
-    gradient.addColorStop(1, '#2E7D32');
-    ctx.fillStyle = gradient;
-    ctx.strokeStyle = '#1B5E20';
-    ctx.lineWidth = 2;
+    ctx.imageSmoothingEnabled = false;
 
+    ctx.fillStyle = '#6ab04c'; // mellow green
+    ctx.strokeStyle = '#379237'; // darker outline
+    ctx.lineWidth = 1;
+
+    // Top pipe
     ctx.beginPath();
     ctx.rect(pipe.x, pipe.y, pipeWidth, pipe.height);
     ctx.fill();
     ctx.stroke();
 
+    // Bottom pipe
     const bottomY = pipe.y + pipe.height + pipeGap;
     ctx.beginPath();
     ctx.rect(pipe.x, bottomY, pipeWidth, canvas.height - bottomY);
