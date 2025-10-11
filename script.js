@@ -191,10 +191,9 @@ function update() {
       pipe.passed = true;
       scoreSound.play();
 
-      if (score % 2 === 0) {
-        gravity *= 1.2;
-        jumpStrength *= 1.2;
-      }
+      // Increase difficulty every pipe passed
+      gravity *= 1.5;
+      jumpStrength *= 1.5;
     }
   });
 
