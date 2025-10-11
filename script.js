@@ -7,12 +7,10 @@ const startButton = document.getElementById('startButton');
 const restartButton = document.getElementById('restartButton');
 const finalScoreDisplay = document.getElementById('finalScore');
 
-// Sound effects (.mp3 versions)
 const jumpSound = new Audio('assets/jump.mp3');
 const scoreSound = new Audio('assets/score.mp3');
 const gameOverSound = new Audio('assets/gameover.mp3');
 
-// Game variables
 const heartSize = 35;
 let heartX = 50;
 let heartY = 250;
@@ -37,24 +35,28 @@ function setCanvasSize() {
 }
 setCanvasSize();
 
+function drawBackground() {
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#fcefee');
+    gradient.addColorStop(0.5, '#fbe8d3');
+    gradient.addColorStop(1, '#e6f0ff');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
 function drawHeart() {
     ctx.drawImage(heartImg, heartX, heartY, heartSize, heartSize);
 }
 
 function drawPipes() {
     pipes.forEach(pipe => {
-        const gradient = ctx.createLinearGradient(pipe.x, 0, pipe.x, canvas.height);
-        gradient.addColorStop(0, '#32CD32');
-        gradient.addColorStop(1, '#006400');
-        ctx.fillStyle = gradient;
+        const pipeGradient = ctx.createLinearGradient(pipe.x, 0, pipe.x, canvas.height);
+        pipeGradient.addColorStop(0, '#b0eacd');
+        pipeGradient.addColorStop(1, '#7ec8a9');
+        ctx.fillStyle = pipeGradient;
 
-        // Top pipe
         ctx.fillRect(pipe.x, pipe.y, pipeWidth, pipe.height);
-        ctx.fillRect(pipe.x - 5, pipe.y + pipe.height - 20, pipeWidth + 10, 20);
-
-        // Bottom pipe
         ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, pipeWidth, canvas.height - (pipe.height + pipeGap));
-        ctx.fillRect(pipe.x - 5, pipe.y + pipe.height + pipeGap, pipeWidth + 10, 20);
     });
 }
 
@@ -100,7 +102,9 @@ function startGame() {
     gameState = 'playing';
     resetGame();
     hideAllScreens();
-    gameLoop();
+    setTimeout(() => {
+        gameLoop();
+    }, 200);
 }
 
 function endGame() {
@@ -109,7 +113,7 @@ function endGame() {
 }
 
 function resetGame() {
-    heartY = 250;
+    heartY = canvas.height / 2;
     velocity = 0;
     pipes = [];
     score = 0;
@@ -129,9 +133,7 @@ function update() {
 
     if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 200) {
         const pipeHeight = Math.floor(Math.random() * (canvas.height - pipeGap - 100)) + 50;
-        pipes.push({ x: canvas.width, y: 0, height: pipeHeight, passed: false });
-    }
-
+pipes.push({ x: canvas.width, y: 0, height: pipeHeight, passed: false });
     pipes.forEach(pipe => {
         if (pipe.x + pipeWidth < heartX && !pipe.passed) {
             score++;
@@ -158,6 +160,7 @@ function update() {
 function gameLoop() {
     if (gameState === 'playing' || gameState === 'gameOver') {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBackground();
         update();
         drawPipes();
         drawHeart();
