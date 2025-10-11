@@ -1,92 +1,106 @@
 body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(to bottom, #fcefee, #fbe8d3, #e6f0ff);
-    overflow: hidden;
-    font-family: 'Press Start 2P', cursive;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: repeating-linear-gradient(
+    to bottom,
+    #ff5e5b 0px,
+    #ff5e5b 20px,
+    #ff774e 20px,
+    #ff774e 40px,
+    #ff9966 40px,
+    #ff9966 60px,
+    #ffcc70 60px,
+    #ffcc70 80px,
+    #ffe29a 80px,
+    #ffe29a 100px,
+    #fef9d7 100px,
+    #fef9d7 120px
+  );
+  font-family: 'Press Start 2P', cursive;
+  overflow: hidden;
 }
 
 canvas {
-    border: 3px solid #ccc;
-    background-color: #ffffff;
-    image-rendering: pixelated;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+  border: 3px solid #ccc;
+  background-color: transparent;
+  image-rendering: pixelated;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
 .overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    color: #333;
-    background-color: rgba(255, 255, 255, 0.85);
-    padding: 30px 50px;
-    border: 2px solid #ddd;
-    border-radius: 12px;
-    box-shadow: 0 0 15px rgba(200, 200, 200, 0.5);
-    backdrop-filter: blur(4px);
-    transition: all 0.5s ease-in-out;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #333;
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 30px 50px;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(200, 200, 200, 0.5);
+  backdrop-filter: blur(4px);
+  transition: all 0.5s ease-in-out;
 }
 
 .overlay.hidden {
-    opacity: 0;
-    visibility: hidden;
-    transform: translate(-50%, -50%) scale(0.9);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -50%) scale(0.9);
 }
 
 .overlay h1 {
-    font-size: 2em;
-    margin-bottom: 20px;
-    color: #6c7a89;
-    text-shadow: 1px 1px #fff;
+  font-size: 2em;
+  margin-bottom: 20px;
+  color: #6c7a89;
+  text-shadow: 1px 1px #fff;
 }
 
 .overlay p {
-    font-size: 1.2em;
-    margin: 10px 0 20px;
-    color: #555;
+  font-size: 1.2em;
+  margin: 10px 0 20px;
+  color: #555;
 }
 
 .button {
-    background: linear-gradient(145deg, #f8c8dc, #f6b8b8);
-    border: 2px solid #eee;
-    color: #333;
-    padding: 12px 24px;
-    font-size: 1em;
-    border-radius: 8px;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+  background: linear-gradient(145deg, #f8c8dc, #f6b8b8);
+  border: 2px solid #eee;
+  color: #333;
+  padding: 12px 24px;
+  font-size: 1em;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-    background: linear-gradient(145deg, #fbe8d3, #f8c8dc);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(145deg, #fbe8d3, #f8c8dc);
 }
 
 .button:active {
-    transform: translateY(1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .score-container {
-    position: absolute;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: #444;
-    font-size: 1.5em;
-    font-weight: bold;
-    text-shadow: 1px 1px #fff;
-    z-index: 10;
-    font-family: 'Press Start 2P', cursive;
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #444;
+  font-size: 1.5em;
+  font-weight: bold;
+  text-shadow: 1px 1px #fff;
+  z-index: 10;
+  font-family: 'Press Start 2P', cursive;
 }
