@@ -4,34 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flappy Heart</title>
-
-  <!-- Retro Pixel Font -->
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
-
-  <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Game Canvas -->
   <canvas id="gameCanvas"></canvas>
 
-  <!-- Score Display -->
   <div class="score-container">0</div>
 
-  <!-- Start Screen -->
   <div id="startScreen" class="overlay">
     <h1>💖 Flappy Heart</h1>
     <button id="startButton" class="button">Start Game</button>
   </div>
 
-  <!-- Game Over Screen -->
   <div id="gameOverScreen" class="overlay hidden">
     <h1>Game Over</h1>
     <p>Score: <span id="finalScore">0</span></p>
     <button id="restartButton" class="button">Restart</button>
   </div>
 
-  <!-- Game Logic -->
   <script src="script.js"></script>
 </body>
 </html>
