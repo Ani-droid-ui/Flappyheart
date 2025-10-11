@@ -22,13 +22,14 @@ const gravity = 0.4;
 const jumpStrength = -8;
 
 const pipeWidth = 60;
-const pipeGap = 180; // wider gap between top and bottom pipes
-const pipeSpacing = 250; // more space between pipe pairs
+const pipeGap = 180;
+const pipeSpacing = 250;
 const pipeSpeed = 2.5;
 let pipes = [];
 
 let score = 0;
 let gameState = 'start';
+let loopId = null;
 
 function setCanvasSize() {
   canvas.width = 400;
@@ -37,13 +38,34 @@ function setCanvasSize() {
 setCanvasSize();
 
 function drawBackground() {
-  const colors = ['#fddde6', '#fbb8c1', '#fca3a3', '#fcbf85', '#fff1a8'];
-  const bandHeight = canvas.height / colors.length;
+  // Layered sunset gradient
+  const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  skyGradient.addColorStop(0, '#fddde6');
+  skyGradient.addColorStop(0.3, '#fbb8c1');
+  skyGradient.addColorStop(0.6, '#fca3a3');
+  skyGradient.addColorStop(0.8, '#fcbf85');
+  skyGradient.addColorStop(1, '#fff1a8');
+  ctx.fillStyle = skyGradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  colors.forEach((color, i) => {
-    ctx.fillStyle = color;
-    ctx.fillRect(0, i * bandHeight, canvas.width, bandHeight);
-  });
+  // Sun
+  const sunX = canvas.width / 2;
+  const sunY = canvas.height * 0.85;
+  const sunRadius = 40;
+
+  ctx.beginPath();
+  ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
+  ctx.fillStyle = '#fff1a8';
+  ctx.fill();
+
+  // Sun glow
+  const glowGradient = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunRadius * 2);
+  glowGradient.addColorStop(0, 'rgba(255, 241, 168, 0.4)');
+  glowGradient.addColorStop(1, 'rgba(255, 241, 168, 0)');
+  ctx.fillStyle = glowGradient;
+  ctx.beginPath();
+  ctx.arc(sunX, sunY, sunRadius * 2, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function drawHeart() {
@@ -53,9 +75,8 @@ function drawHeart() {
 function drawPipes() {
   pipes.forEach(pipe => {
     ctx.imageSmoothingEnabled = false;
-
-    ctx.fillStyle = '#6ab04c'; // mellow green
-    ctx.strokeStyle = '#379237'; // darker outline
+    ctx.fillStyle = '#a8d5a2';
+    ctx.strokeStyle = '#6c9c6b';
     ctx.lineWidth = 1;
 
     // Top pipe
@@ -104,10 +125,11 @@ function jump() {
 }
 
 function startGame() {
+  if (loopId) cancelAnimationFrame(loopId);
   resetGame();
   gameState = 'playing';
   hideAllScreens();
-  requestAnimationFrame(gameLoop);
+  loopId = requestAnimationFrame(gameLoop);
 }
 
 function resetGame() {
@@ -170,7 +192,7 @@ function gameLoop() {
     drawPipes();
     drawHeart();
     drawScore();
-    requestAnimationFrame(gameLoop);
+    loopId = requestAnimationFrame(gameLoop);
   }
 }
 
