@@ -239,8 +239,12 @@ function update() {
       { min: lastPipe.height + pipeGap + safeMargin, max: canvas.height - pelletSize }
     ];
 
-    const zone = safeZones[Math.floor(Math.random() * safeZones.length)];
-    const pelletY = Math.random() * (zone.max - zone.min) + zone.min;
+const zone = safeZones[Math.floor(Math.random() * safeZones.length)];
+const bandCount = 3;
+const bandHeight = (zone.max - zone.min) / bandCount;
+const bandIndex = Math.floor(Math.random() * bandCount);
+const pelletY = zone.min + bandIndex * bandHeight + bandHeight / 2 - pelletSize / 2;
+
 
     pellets.push({
       x: canvas.width,
