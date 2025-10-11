@@ -8,6 +8,20 @@
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
+    
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen" class="overlay hidden">
+        <h1>Game Over</h1>
+        <p>Score: <span id="finalScore">0</span></p>
+        <button id="restartButton" class="button">Restart</button>
+    </div>
+
+    <!-- Start Screen -->
+    <div id="startScreen" class="overlay">
+        <h1>Flappy Heart</h1>
+        <button id="startButton" class="button">Start Game</button>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
