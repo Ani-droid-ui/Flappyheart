@@ -28,6 +28,10 @@ const basePipeSpeed = 1.8;
 let currentPipeSpeed = basePipeSpeed;
 let pipes = [];
 
+let pellets = [];
+const pelletSize = 20;
+const pelletColor = '#ff69b4';
+
 let score = 0;
 let gameState = 'start';
 let loopId = null;
@@ -83,6 +87,17 @@ function drawPipes() {
     ctx.fillStyle = '#7fa87a';
     ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y, 4, pipe.height);
     ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y + pipe.height + pipeGap, 4, canvas.height - (pipe.y + pipe.height + pipeGap));
+  });
+}
+
+function drawPellets() {
+  pellets.forEach(p => {
+    if (!p.collected) {
+      ctx.fillStyle = pelletColor;
+      ctx.beginPath();
+      ctx.arc(p.x + pelletSize / 2, p.y + pelletSize / 2, pelletSize / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
   });
 }
 
@@ -153,6 +168,7 @@ function resetGame() {
   heartY = canvas.height / 2;
   velocity = 0;
   pipes = [];
+  pellets = [];
   score = 0;
   currentPipeSpeed = basePipeSpeed;
 }
@@ -191,8 +207,9 @@ function update() {
       pipe.passed = true;
       scoreSound.play();
 
-      // Increase pipe speed every pipe passed
-      currentPipeSpeed *= 1.5;
+      if (score % 2 === 0) {
+        currentPipeSpeed += 0.2;
+      }
     }
   });
 
@@ -209,6 +226,33 @@ function update() {
       endGame();
     }
   });
+
+  // Pellet logic
+  pellets.forEach(p => p.x -= currentPipeSpeed);
+
+  if (Math.random() < 0.01) {
+    pellets.push({
+      x: canvas.width,
+      y: Math.random() * (canvas.height - pelletSize),
+      collected: false
+    });
+  }
+
+  pellets.forEach(p => {
+    if (
+      !p.collected &&
+      heartX < p.x + pelletSize &&
+      heartX + heartSize > p.x &&
+      heartY < p.y + pelletSize &&
+      heartY + heartSize > p.y
+    ) {
+      p.collected = true;
+      score++;
+      scoreSound.play();
+    }
+  });
+
+  pellets = pellets.filter(p => p.x > -pelletSize && !p.collected);
 }
 
 function gameLoop() {
@@ -217,6 +261,7 @@ function gameLoop() {
     drawBackground();
     update();
     drawPipes();
+    drawPellets();
     drawHeart();
     drawScore();
     loopId = requestAnimationFrame(gameLoop);
