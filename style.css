@@ -6,10 +6,12 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: radial-gradient(circle at 70% 30%, #fef6f6 0%, #fbecec 20%, #f7e3e3 40%, #f3dbdb 60%, #eed3d3 80%, #eacbcb 100%),
-              linear-gradient(to bottom, #fff8f0 0%, #fceeea 100%);
-  background-blend-mode: soft-light;
+  background-color: #fef6f6;
+  background-image:
+    linear-gradient(to bottom, #fef6f6 0%, #fbecec 100%),
+    url('https://opengameart.org/sites/default/files/blossom_tree_pixel.png'); /* Replace with your preferred 8-bit blossom tree image */
   background-repeat: no-repeat;
+  background-position: center bottom;
   background-size: cover;
   font-family: 'Press Start 2P', cursive;
   overflow: hidden;
