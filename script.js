@@ -11,6 +11,9 @@ const jumpSound = new Audio('assets/jump.mp3');
 const scoreSound = new Audio('assets/score.mp3');
 const gameOverSound = new Audio('assets/gameover.mp3');
 
+const heartImg = new Image();
+heartImg.src = 'assets/heart.png';
+
 const heartSize = 35;
 let heartX = 50;
 let heartY = 250;
@@ -20,14 +23,11 @@ const jumpStrength = -8;
 
 const pipeWidth = 60;
 const pipeGap = 150;
-const pipeSpeed = 3;
+const pipeSpeed = 2.5;
 let pipes = [];
 
 let score = 0;
 let gameState = 'start';
-
-const heartImg = new Image();
-heartImg.src = 'assets/heart.png';
 
 function setCanvasSize() {
     canvas.width = 400;
@@ -50,44 +50,52 @@ function drawHeart() {
 
 function drawPipes() {
     pipes.forEach(pipe => {
-        const pipeGradient = ctx.createLinearGradient(pipe.x, 0, pipe.x, canvas.height);
-        pipeGradient.addColorStop(0, '#b0eacd');
-        pipeGradient.addColorStop(1, '#7ec8a9');
-        ctx.fillStyle = pipeGradient;
+        const gradient = ctx.createLinearGradient(pipe.x, 0, pipe.x, canvas.height);
+        gradient.addColorStop(0, '#b0eacd');
+        gradient.addColorStop(1, '#7ec8a9');
+        ctx.fillStyle = gradient;
 
-        ctx.fillRect(pipe.x, pipe.y, pipeWidth, pipe.height);
-        ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, pipeWidth, canvas.height - (pipe.height + pipeGap));
+        // Rounded top pipe
+        ctx.beginPath();
+        ctx.moveTo(pipe.x, pipe.y);
+        ctx.lineTo(pipe.x + pipeWidth, pipe.y);
+        ctx.lineTo(pipe.x + pipeWidth, pipe.y + pipe.height);
+        ctx.quadraticCurveTo(pipe.x + pipeWidth / 2, pipe.y + pipe.height + 20, pipe.x, pipe.y + pipe.height);
+        ctx.closePath();
+        ctx.fill();
+
+        // Rounded bottom pipe
+        const bottomY = pipe.y + pipe.height + pipeGap;
+        ctx.beginPath();
+        ctx.moveTo(pipe.x, bottomY);
+        ctx.lineTo(pipe.x + pipeWidth, bottomY);
+        ctx.lineTo(pipe.x + pipeWidth, canvas.height);
+        ctx.quadraticCurveTo(pipe.x + pipeWidth / 2, canvas.height + 20, pipe.x, canvas.height);
+        ctx.closePath();
+        ctx.fill();
     });
 }
 
 function drawScore() {
-    if (!document.querySelector('.score-container')) {
-        const scoreContainer = document.createElement('div');
-        scoreContainer.classList.add('score-container');
-        document.body.appendChild(scoreContainer);
-    }
     document.querySelector('.score-container').textContent = score;
 }
 
 function showStartScreen() {
     startScreen.classList.remove('hidden');
     gameOverScreen.classList.add('hidden');
-    const scoreContainer = document.querySelector('.score-container');
-    if (scoreContainer) scoreContainer.style.display = 'none';
+    document.querySelector('.score-container').style.display = 'none';
 }
 
 function hideAllScreens() {
     startScreen.classList.add('hidden');
     gameOverScreen.classList.add('hidden');
-    const scoreContainer = document.querySelector('.score-container');
-    if (scoreContainer) scoreContainer.style.display = 'block';
+    document.querySelector('.score-container').style.display = 'block';
 }
 
 function showGameOverScreen() {
     gameOverScreen.classList.remove('hidden');
     finalScoreDisplay.textContent = score;
-    const scoreContainer = document.querySelector('.score-container');
-    if (scoreContainer) scoreContainer.style.display = 'none';
+    document.querySelector('.score-container').style.display = 'none';
     gameOverSound.play();
 }
 
@@ -99,17 +107,10 @@ function jump() {
 }
 
 function startGame() {
-    gameState = 'playing';
     resetGame();
+    gameState = 'playing';
     hideAllScreens();
-    setTimeout(() => {
-        gameLoop();
-    }, 200);
-}
-
-function endGame() {
-    gameState = 'gameOver';
-    showGameOverScreen();
+    requestAnimationFrame(gameLoop);
 }
 
 function resetGame() {
@@ -117,6 +118,11 @@ function resetGame() {
     velocity = 0;
     pipes = [];
     score = 0;
+}
+
+function endGame() {
+    gameState = 'gameOver';
+    showGameOverScreen();
 }
 
 function update() {
@@ -133,7 +139,9 @@ function update() {
 
     if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 200) {
         const pipeHeight = Math.floor(Math.random() * (canvas.height - pipeGap - 100)) + 50;
-pipes.push({ x: canvas.width, y: 0, height: pipeHeight, passed: false });
+        pipes.push({ x: canvas.width, y: 0, height: pipeHeight, passed: false });
+    }
+
     pipes.forEach(pipe => {
         if (pipe.x + pipeWidth < heartX && !pipe.passed) {
             score++;
@@ -158,13 +166,13 @@ pipes.push({ x: canvas.width, y: 0, height: pipeHeight, passed: false });
 }
 
 function gameLoop() {
-    if (gameState === 'playing' || gameState === 'gameOver') {
+    if (gameState === 'playing') {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawBackground();
         update();
         drawPipes();
         drawHeart();
-        if (gameState === 'playing') drawScore();
+        drawScore();
         requestAnimationFrame(gameLoop);
     }
 }
