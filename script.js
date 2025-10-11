@@ -34,8 +34,8 @@ let loopId = null;
 let highScore = localStorage.getItem('flappyHighScore') || 0;
 
 function setCanvasSize() {
-  canvas.width = 400;
-  canvas.height = 600;
+  canvas.width = Math.min(window.innerWidth, 400);
+  canvas.height = Math.min(window.innerHeight, 600);
 }
 setCanvasSize();
 
@@ -227,6 +227,7 @@ document.addEventListener('keydown', (e) => {
   if (e.code === 'Space') handleInput();
 });
 document.addEventListener('mousedown', handleInput);
+document.addEventListener('touchstart', handleInput); // Mobile tap support
 startButton.addEventListener('click', startGame);
 restartButton.addEventListener('click', startGame);
 
