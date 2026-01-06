@@ -38,6 +38,33 @@
     <button id="restartButton" class="button">Restart</button>
   </div>
 
+  <!-- Lightweight page-level handlers so the How To Play button works even if script.js
+       doesn't yet wire up the elements. These only toggle the overlays and score display. -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const startScreen = document.getElementById('startScreen');
+      const howToScreen = document.getElementById('howToScreen');
+      const howToButton = document.getElementById('howToButton');
+      const howBackButton = document.getElementById('howBackButton');
+      const scoreContainer = document.querySelector('.score-container');
+
+      function showHow() {
+        if (startScreen) startScreen.classList.add('hidden');
+        if (howToScreen) howToScreen.classList.remove('hidden');
+        if (scoreContainer) scoreContainer.style.display = 'none';
+      }
+
+      function showStart() {
+        if (howToScreen) howToScreen.classList.add('hidden');
+        if (startScreen) startScreen.classList.remove('hidden');
+        if (scoreContainer) scoreContainer.style.display = 'none';
+      }
+
+      if (howToButton) howToButton.addEventListener('click', showHow);
+      if (howBackButton) howBackButton.addEventListener('click', showStart);
+    });
+  </script>
+
   <script src="script.js"></script>
 </body>
 </html>
