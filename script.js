@@ -1,3 +1,4 @@
+```javascript name=script.js url=https://github.com/Ani-droid-ui/Flappyheart/blob/main/script.js
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -19,19 +20,16 @@ let heartX = 50;
 let heartY = 250;
 let velocity = 0;
 
-// Balanced, "realistic" feel:
-// - gravity and jump tuned so jumps are a bit higher than very snappy versions,
-//   but still feel responsive and not floaty.
-// - terminalVelocity prevents runaway speeds.
-const gravity = 0.45;
-const jumpStrength = -7.0;
-const terminalVelocity = 12;
+// Tuned to make jumping faster (stronger impulse & snappier) while keeping a controlled feel:
+const gravity = 0.5;        // slightly stronger gravity for quicker arcs
+const jumpStrength = -9.0;  // stronger upward impulse for faster jumps
+const terminalVelocity = 16; // cap fall/jump speed
 
 const pipeWidth = 60;
 const pipeGap = 180;
 const pipeSpacing = 250;
-// Moderate starting speed and a gentle acceleration curve
-const basePipeSpeed = 2.2;
+// Pipes are faster overall and accelerate more with score:
+const basePipeSpeed = 3.6;   // faster starting pipe speed
 let currentPipeSpeed = basePipeSpeed;
 let pipes = [];
 
@@ -158,7 +156,7 @@ function showGameOverScreen() {
 
 function jump() {
   if (gameState === 'playing') {
-    // reset vertical velocity to ensure consistent consecutive jumps
+    // stronger, faster jump impulse
     velocity = jumpStrength;
     try { jumpSound.currentTime = 0; } catch (e) {}
     jumpSound.play().catch(() => {});
@@ -196,7 +194,7 @@ function endGame() {
 function update() {
   if (gameState !== 'playing') return;
 
-  // apply gravity and clamp velocity to terminal velocity for realistic feel
+  // apply gravity and clamp velocity
   velocity += gravity;
   if (velocity > terminalVelocity) velocity = terminalVelocity;
   if (velocity < -terminalVelocity) velocity = -terminalVelocity;
@@ -207,8 +205,10 @@ function update() {
     endGame();
   }
 
+  // move pipes (faster)
   pipes.forEach(pipe => pipe.x -= currentPipeSpeed);
 
+  // spawn new pipes
   if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeSpacing) {
     const pipeHeight = Math.floor(Math.random() * (canvas.height - pipeGap - 100)) + 50;
     pipes.push({ x: canvas.width, y: 0, height: pipeHeight, passed: false });
@@ -220,8 +220,8 @@ function update() {
       pipe.passed = true;
       scoreSound.play();
 
-      // gentle acceleration: increase with score slowly, capped
-      currentPipeSpeed = Math.min(basePipeSpeed + score * 0.05, 6.0);
+      // increase pipe speed more noticeably but moderately per score
+      currentPipeSpeed = Math.min(basePipeSpeed + score * 0.12, 8.0);
     }
   });
 
@@ -229,6 +229,7 @@ function update() {
     pipes.shift();
   }
 
+  // collision with pipes
   pipes.forEach(pipe => {
     if (
       heartX < pipe.x + pipeWidth &&
@@ -239,29 +240,19 @@ function update() {
     }
   });
 
-  // Pellet logic
+  // Pellet logic - move pellets
   pellets.forEach(p => p.x -= currentPipeSpeed);
 
+  // Spawn pellets inside gap (rare chance)
   if (Math.random() < 0.01 && pipes.length > 0) {
     const lastPipe = pipes[pipes.length - 1];
-    const safeMargin = 10;
-
-    const safeZones = [
-      { min: 0, max: lastPipe.height - pelletSize - safeMargin },
-      { min: lastPipe.height + pipeGap + safeMargin, max: canvas.height - pelletSize }
-    ];
-
-    const zone = safeZones[Math.floor(Math.random() * safeZones.length)];
-    const bandCount = 3;
-    const bandHeight = (zone.max - zone.min) / bandCount;
-    const bandIndex = Math.floor(Math.random() * bandCount);
-    const pelletY = zone.min + bandIndex * bandHeight + bandHeight / 2 - pelletSize / 2;
-
-    pellets.push({
-      x: canvas.width,
-      y: pelletY,
-      collected: false
-    });
+    const safeMargin = 18; // keep pellets away from pipe edges
+    const gapTop = lastPipe.height + safeMargin;
+    const gapBottom = lastPipe.height + pipeGap - pelletSize - safeMargin;
+    if (gapBottom > gapTop) {
+      const pelletY = Math.floor(Math.random() * (gapBottom - gapTop)) + gapTop;
+      pellets.push({ x: canvas.width, y: pelletY, collected: false });
+    }
   }
 
   pellets.forEach(p => {
@@ -275,6 +266,8 @@ function update() {
       p.collected = true;
       score++;
       scoreSound.play();
+      // small speed bump on collecting
+      currentPipeSpeed = Math.min(basePipeSpeed + score * 0.12, 8.0);
     }
   });
 
@@ -307,3 +300,4 @@ function handleInput() {
 }
 
 showStartScreen();
+```
