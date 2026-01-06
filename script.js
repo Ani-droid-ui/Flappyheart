@@ -32,15 +32,15 @@
   let velocity = 0;
 
   // physics & speed tuning
-  const gravity = 0.75;        // gravity applied each frame
-  const jumpStrength = -8.5;  // upward impulse on jump
-  const terminalVelocity = 20;
+  const gravity = 0.55;        // gravity applied each frame
+  const jumpStrength = -10;  // upward impulse on jump
+  const terminalVelocity = 18;
 
   // pipes
   const pipeWidth = 60;
-  const pipeGap = 190;
+  const pipeGap = 180;
   const pipeSpacing = 300;
-  const basePipeSpeed = 1; // faster starting pipes
+  const basePipeSpeed = 2; // faster starting pipes
   let currentPipeSpeed = basePipeSpeed;
   let pipes = [];
 
