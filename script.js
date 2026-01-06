@@ -36,7 +36,7 @@ const jumpStrength = -10;
 const terminalVelocity = 17;
 
 const pipeWidth = 60;
-const pipeGap = 175;
+const pipeGap = 200;
 const pipeSpacing = 300;
 const basePipeSpeed = 2.0;
 let currentPipeSpeed = basePipeSpeed;
