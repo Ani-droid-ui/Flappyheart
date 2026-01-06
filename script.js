@@ -494,6 +494,14 @@
   if (restartButton) {
     restartButton.addEventListener('click', startGame);
   }
+const homeButton = document.getElementById('homeButton');
+if (homeButton) {
+  homeButton.addEventListener('click', () => {
+    // Go back to the start screen
+    gameState = 'start';
+    showStartScreen();
+  });
+}
 
   // initial UI
   showStartScreen();
