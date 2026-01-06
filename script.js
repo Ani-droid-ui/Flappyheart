@@ -362,7 +362,7 @@
         pipe.passed = true;
         score++;
         safePlay(scoreSound);
-        currentPipeSpeed = Math.min(basePipeSpeed + score * 0.10, 8.0);
+        currentPipeSpeed = Math.min(basePipeSpeed + score * 0.07, 7.0);
       }
     });
 
