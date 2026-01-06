@@ -31,14 +31,14 @@
   let heartY = 250;
   let velocity = 0;
 
-const gravity = 0.58;
+const gravity = 0.55;
 const jumpStrength = -10;
 const terminalVelocity = 17;
 
 const pipeWidth = 60;
-const pipeGap = 170;   // slightly more forgiving
+const pipeGap = 175;
 const pipeSpacing = 300;
-const basePipeSpeed = 2.1;  // smoother, less frantic
+const basePipeSpeed = 2.0;
 let currentPipeSpeed = basePipeSpeed;
 let pipes = [];
 
