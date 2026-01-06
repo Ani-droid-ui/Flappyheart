@@ -21,8 +21,8 @@ let velocity = 0;
 
 // Physics tuned to be less snappy and more realistic, with a slightly higher but not excessive jump.
 // Unified gravity used for ascent/descent so jump and fall feel consistent.
-const gravity = 0.55;        // reduced gravity for smoother (less snappy) movement
-const jumpStrength = -8.6;   // stronger impulse to make jumps a bit higher (but not too high)
+const gravity = 0.95;        // reduced gravity for smoother (less snappy) movement
+const jumpStrength = -11;   // stronger impulse to make jumps a bit higher (but not too high)
 const terminalVelocity = 14; // lower cap to keep movement feeling controlled
 
 const pipeWidth = 60;
