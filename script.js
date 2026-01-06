@@ -19,11 +19,11 @@ let heartX = 50;
 let heartY = 250;
 let velocity = 0;
 
-// Physics tuned: fall and jump use the same gravity (no separate fall multiplier).
-// Gravity reduced a bit for "a little less downward force".
-const gravity = 0.85;        // unified gravity for ascent and descent
-const jumpStrength = -7.0;   // crisp jump impulse (snappy but not too tall)
-const terminalVelocity = 18; // cap so speed doesn't grow unbounded
+// Physics tuned to be less snappy and more realistic, with a slightly higher but not excessive jump.
+// Unified gravity used for ascent/descent so jump and fall feel consistent.
+const gravity = 0.55;        // reduced gravity for smoother (less snappy) movement
+const jumpStrength = -8.6;   // stronger impulse to make jumps a bit higher (but not too high)
+const terminalVelocity = 14; // lower cap to keep movement feeling controlled
 
 const pipeWidth = 60;
 const pipeGap = 180;
@@ -182,14 +182,14 @@ function showGameOverScreen() {
 
 function jump() {
   if (gameState === 'playing') {
-    // Reset vertical velocity to a crisp impulse for consistent, snappy jumps
+    // Reset vertical velocity to a consistent impulse for reliable consecutive jumps
     velocity = jumpStrength;
 
     // Ensure jump sound plays every time (reset playback position, play, ignore promise rejection)
     try {
       jumpSound.currentTime = 0;
     } catch (e) {
-      // some browsers may throw if audio not ready; ignore
+      // ignore if audio not ready
     }
     jumpSound.play().catch(() => {});
   }
@@ -226,7 +226,7 @@ function endGame() {
 function update() {
   if (gameState !== 'playing') return;
 
-  // Apply unified gravity (same effect while rising and falling) for consistent responsiveness.
+  // Apply unified gravity for ascent and descent to keep jump/fall consistent and more realistic.
   velocity += gravity;
 
   // Cap terminal velocity
@@ -331,7 +331,7 @@ function gameLoop() {
 // Input handlers tuned for responsiveness:
 // - Allow key auto-repeat (so quick consecutive jumps are possible by tapping/holding space).
 // - Short-hop reduces upward velocity on release for tighter control.
-const shortHopMultiplier = 0.6;
+const shortHopMultiplier = 0.75;
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Space') {
     e.preventDefault(); // prevent page scroll
