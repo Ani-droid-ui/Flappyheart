@@ -4,20 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flappy Heart</title>
+
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
+  <!-- Game Canvas -->
   <canvas id="gameCanvas"></canvas>
 
+  <!-- Score -->
   <div class="score-container">0</div>
 
+  <!-- Start Screen -->
   <div id="startScreen" class="overlay">
-    <h1>💖 Flappy Heart</h1>
+    <h1>Flappy Heart</h1>
     <button id="startButton" class="button">Start Game</button>
     <button id="howToButton" class="button" style="margin-left:12px;">How to Play</button>
+    <!-- Sound toggle is injected by JS -->
   </div>
 
+  <!-- How To Play Screen -->
   <div id="howToScreen" class="overlay hidden">
     <h1>How to Play</h1>
     <div id="howToText" style="max-width:360px; text-align:left; line-height:1.4; color:#444;">
@@ -29,14 +37,18 @@
     <button id="howBackButton" class="button" style="margin-top:12px;">Back</button>
   </div>
 
+  <!-- Game Over Screen -->
   <div id="gameOverScreen" class="overlay hidden">
     <h1>Game Over</h1>
     <p>Score: <span id="finalScore">0</span></p>
+
     <button id="restartButton" class="button">Restart</button>
+
+    <!-- NEW: Return to Homepage -->
+    <button id="homeButton" class="button" style="margin-top:12px;">Return to Homepage</button>
   </div>
 
-  <!-- Lightweight page-level handlers so the How To Play button works even if script.js
-       doesn't yet wire up the elements. These only toggle the overlays and score display. -->
+  <!-- Lightweight UI-only handlers -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const startScreen = document.getElementById('startScreen');
@@ -46,22 +58,23 @@
       const scoreContainer = document.querySelector('.score-container');
 
       function showHow() {
-        if (startScreen) startScreen.classList.add('hidden');
-        if (howToScreen) howToScreen.classList.remove('hidden');
-        if (scoreContainer) scoreContainer.style.display = 'none';
+        startScreen.classList.add('hidden');
+        howToScreen.classList.remove('hidden');
+        scoreContainer.style.display = 'none';
       }
 
       function showStart() {
-        if (howToScreen) howToScreen.classList.add('hidden');
-        if (startScreen) startScreen.classList.remove('hidden');
-        if (scoreContainer) scoreContainer.style.display = 'none';
+        howToScreen.classList.add('hidden');
+        startScreen.classList.remove('hidden');
+        scoreContainer.style.display = 'none';
       }
 
-      if (howToButton) howToButton.addEventListener('click', showHow);
-      if (howBackButton) howBackButton.addEventListener('click', showStart);
+      howToButton.addEventListener('click', showHow);
+      howBackButton.addEventListener('click', showStart);
     });
   </script>
 
+  <!-- Main Game Script -->
   <script src="script.js"></script>
 </body>
 </html>
