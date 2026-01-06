@@ -16,6 +16,9 @@
   const restartButton = document.getElementById('restartButton');
   const finalScoreDisplay = document.getElementById('finalScore');
 
+  // sound state
+  let soundEnabled = true;
+
   // audio
   const jumpSound = new Audio('assets/jump.mp3');
   const scoreSound = new Audio('assets/score.mp3');
@@ -31,16 +34,16 @@
   let heartY = 250;
   let velocity = 0;
 
-const gravity = 0.55;
-const jumpStrength = -10;
-const terminalVelocity = 17;
+  const gravity = 0.55;
+  const jumpStrength = -10;
+  const terminalVelocity = 17;
 
-const pipeWidth = 60;
-const pipeGap = 200;
-const pipeSpacing = 300;
-const basePipeSpeed = 2.0;
-let currentPipeSpeed = basePipeSpeed;
-let pipes = [];
+  const pipeWidth = 60;
+  const pipeGap = 200;
+  const pipeSpacing = 300;
+  const basePipeSpeed = 2.0;
+  let currentPipeSpeed = basePipeSpeed;
+  let pipes = [];
 
   // pellets (pink common, yellow rarer)
   let pellets = [];
@@ -58,23 +61,20 @@ let pipes = [];
   let loopId = null;
   let highScore = parseInt(localStorage.getItem('flappyHighScore')) || 0;
 
-  // helpers
+  // canvas sizing
   function setCanvasSize() {
-    // Keep a reasonable max size for layout
     canvas.width = Math.min(window.innerWidth, 400);
     canvas.height = Math.min(window.innerHeight, 600);
   }
   setCanvasSize();
 
-  // Recompute canvas size on resize and avoid breaking game visually.
   window.addEventListener('resize', () => {
     const prevH = canvas.height;
     setCanvasSize();
-    // keep player vertically in bounds after resize
     heartY = Math.max(0, Math.min(heartY, canvas.height - heartSize));
   });
 
-  // Drawing
+  // background
   function drawBackground() {
     const colors = ['#fddde6', '#fbb8c1', '#fca3a3', '#fcbf85', '#fff1a8'];
     const bandHeight = Math.floor(canvas.height / colors.length);
@@ -101,7 +101,6 @@ let pipes = [];
   }
 
   function drawHeart() {
-    // If image not loaded yet, draw a simple placeholder
     if (heartImg.complete && heartImg.naturalWidth !== 0) {
       ctx.drawImage(heartImg, heartX, heartY, heartSize, heartSize);
     } else {
@@ -119,15 +118,30 @@ let pipes = [];
       // main shafts
       ctx.fillStyle = '#a8d5a2';
       ctx.fillRect(pipe.x, pipe.y, pipeWidth, pipe.height);
-      ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, pipeWidth, canvas.height - (pipe.y + pipe.height + pipeGap));
+      ctx.fillRect(
+        pipe.x,
+        pipe.y + pipe.height + pipeGap,
+        pipeWidth,
+        canvas.height - (pipe.y + pipe.height + pipeGap)
+      );
 
       // side highlights
       ctx.fillStyle = '#cbeac0';
       ctx.fillRect(pipe.x + 6, pipe.y, 6, pipe.height);
-      ctx.fillRect(pipe.x + 6, pipe.y + pipe.height + pipeGap, 6, canvas.height - (pipe.y + pipe.height + pipeGap));
+      ctx.fillRect(
+        pipe.x + 6,
+        pipe.y + pipe.height + pipeGap,
+        6,
+        canvas.height - (pipe.y + pipe.height + pipeGap)
+      );
       ctx.fillStyle = '#7fa87a';
       ctx.fillRect(pipe.x + pipeWidth - 12, pipe.y, 6, pipe.height);
-      ctx.fillRect(pipe.x + pipeWidth - 12, pipe.y + pipe.height + pipeGap, 6, canvas.height - (pipe.y + pipe.height + pipeGap));
+      ctx.fillRect(
+        pipe.x + pipeWidth - 12,
+        pipe.y + pipe.height + pipeGap,
+        6,
+        canvas.height - (pipe.y + pipe.height + pipeGap)
+      );
 
       // rounded caps
       ctx.save();
@@ -139,7 +153,13 @@ let pipes = [];
 
       // top edge of lower pipe (cap)
       ctx.beginPath();
-      ctx.arc(pipe.x + pipeWidth / 2, pipe.y + pipe.height + pipeGap, pipeWidth / 2, 0, Math.PI);
+      ctx.arc(
+        pipe.x + pipeWidth / 2,
+        pipe.y + pipe.height + pipeGap,
+        pipeWidth / 2,
+        0,
+        Math.PI
+      );
       ctx.fill();
       ctx.restore();
 
@@ -147,8 +167,18 @@ let pipes = [];
       ctx.fillStyle = '#5c9064';
       ctx.fillRect(pipe.x, pipe.y, 4, pipe.height);
       ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y, 4, pipe.height);
-      ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, 4, canvas.height - (pipe.y + pipe.height + pipeGap));
-      ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y + pipe.height + pipeGap, 4, canvas.height - (pipe.y + pipe.height + pipeGap));
+      ctx.fillRect(
+        pipe.x,
+        pipe.y + pipe.height + pipeGap,
+        4,
+        canvas.height - (pipe.y + pipe.height + pipeGap)
+      );
+      ctx.fillRect(
+        pipe.x + pipeWidth - 4,
+        pipe.y + pipe.height + pipeGap,
+        4,
+        canvas.height - (pipe.y + pipe.height + pipeGap)
+      );
     });
   }
 
@@ -208,9 +238,15 @@ let pipes = [];
     const sc = document.querySelector('.score-container');
     if (sc) sc.style.display = 'none';
 
-    // play sound (best-effort)
-    try { gameOverSound.currentTime = 0; } catch (e) {}
-    gameOverSound.play().catch(() => {});
+    // play sound
+    safePlay(gameOverSound);
+  }
+
+  // sound-safe play helper
+  function safePlay(audio) {
+    if (!soundEnabled) return;
+    try { audio.currentTime = 0; } catch (e) {}
+    audio.play && audio.play().catch(() => {});
   }
 
   // Game control
@@ -228,7 +264,6 @@ let pipes = [];
     resetGame();
     gameState = 'playing';
     hideAllScreens();
-    // create an initial pipe so the player sees something immediately
     spawnInitialPipes();
     loopId = requestAnimationFrame(gameLoop);
   }
@@ -248,22 +283,14 @@ let pipes = [];
     }
   }
 
-  function safePlay(audio) {
-    // try to reset and play, ignore promise rejection
-    try { audio.currentTime = 0; } catch (e) {}
-    audio.play && audio.play().catch(() => {});
-  }
-
   function jump() {
     if (gameState !== 'playing') return;
-    // reset vertical velocity so consecutive jumps are consistent
     velocity = jumpStrength;
     safePlay(jumpSound);
   }
 
   // Spawning helpers
   function spawnInitialPipes() {
-    // Start with two pipes spaced apart
     const firstHeight = Math.floor(Math.random() * (canvas.height - pipeGap - 120)) + 50;
     pipes.push({ x: canvas.width + 20, y: 0, height: firstHeight, passed: false });
     const secondHeight = Math.floor(Math.random() * (canvas.height - pipeGap - 120)) + 50;
@@ -276,16 +303,29 @@ let pipes = [];
   }
 
   function spawnPelletInGap(lastPipe) {
-    const safeMargin = 14; // margin from pipe edges
+    const safeMargin = 14;
     const gapTop = lastPipe.height + safeMargin;
     const gapBottom = lastPipe.height + pipeGap - pelletSize - safeMargin;
     if (gapBottom <= gapTop) return null;
     const pelletY = Math.floor(Math.random() * (gapBottom - gapTop + 1)) + gapTop;
-    // choose type
     if (Math.random() < yellowProbability) {
-      return { x: canvas.width, y: pelletY, collected: false, type: 'yellow', color: yellowPelletColor, value: yellowPelletValue };
+      return {
+        x: canvas.width,
+        y: pelletY,
+        collected: false,
+        type: 'yellow',
+        color: yellowPelletColor,
+        value: yellowPelletValue
+      };
     } else {
-      return { x: canvas.width, y: pelletY, collected: false, type: 'pink', color: pinkPelletColor, value: pinkPelletValue };
+      return {
+        x: canvas.width,
+        y: pelletY,
+        collected: false,
+        type: 'pink',
+        color: pinkPelletColor,
+        value: pinkPelletValue
+      };
     }
   }
 
@@ -299,10 +339,10 @@ let pipes = [];
     if (velocity < -terminalVelocity) velocity = -terminalVelocity;
     heartY += velocity;
 
-    // keep inside canvas vertically
+    // bounds
     heartY = Math.max(0, Math.min(heartY, canvas.height - heartSize));
 
-    // check ground/ceiling collision
+    // ground/ceiling
     if (heartY + heartSize >= canvas.height || heartY <= 0) {
       endGame();
       return;
@@ -311,28 +351,27 @@ let pipes = [];
     // move pipes
     pipes.forEach(pipe => pipe.x -= currentPipeSpeed);
 
-    // spawn new pipe when needed
+    // spawn new pipe
     if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeSpacing) {
       spawnPipe();
     }
 
-    // mark passed pipes for scoring
+    // scoring on pipes
     pipes.forEach(pipe => {
       if (!pipe.passed && pipe.x + pipeWidth < heartX) {
         pipe.passed = true;
         score++;
         safePlay(scoreSound);
-        // gradually increase speed, capped
         currentPipeSpeed = Math.min(basePipeSpeed + score * 0.10, 8.0);
       }
     });
 
-    // remove off-screen pipes
+    // remove old pipes
     if (pipes.length > 0 && pipes[0].x < -pipeWidth - 20) {
       pipes.shift();
     }
 
-    // collision with pipes
+    // pipe collision
     for (let i = 0; i < pipes.length; i++) {
       const pipe = pipes[i];
       const withinX = heartX < pipe.x + pipeWidth && heartX + heartSize > pipe.x;
@@ -347,7 +386,7 @@ let pipes = [];
     // move pellets
     pellets.forEach(p => p.x -= currentPipeSpeed);
 
-    // spawn pellets occasionally inside last pipe gap so they're reachable
+    // spawn pellets in gaps
     if (Math.random() < pelletSpawnChance && pipes.length > 0) {
       const lastPipe = pipes[pipes.length - 1];
       const p = spawnPelletInGap(lastPipe);
@@ -356,15 +395,16 @@ let pipes = [];
 
     // pellet collisions
     pellets.forEach(p => {
-      if (!p.collected &&
-          heartX < p.x + pelletSize &&
-          heartX + heartSize > p.x &&
-          heartY < p.y + pelletSize &&
-          heartY + heartSize > p.y) {
+      if (
+        !p.collected &&
+        heartX < p.x + pelletSize &&
+        heartX + heartSize > p.x &&
+        heartY < p.y + pelletSize &&
+        heartY + heartSize > p.y
+      ) {
         p.collected = true;
         score += (p.value || 1);
         safePlay(scoreSound);
-        // small speed bump for pacing
         currentPipeSpeed = Math.min(currentPipeSpeed + 0.01, 8.0);
       }
     });
@@ -395,14 +435,17 @@ let pipes = [];
       } else if (gameState === 'playing') {
         jump();
       } else if (gameState === 'gameOver') {
-        // restart quickly with space
         startGame();
       }
     }
   }
 
   function handlePointerDown(e) {
-    // start if on start screen, otherwise jump / restart on gameOver
+    // If clicking a UI button or overlay, don't trigger game actions
+    if (e.target.closest('.button') || e.target.closest('.overlay')) {
+      return;
+    }
+
     if (gameState === 'start') {
       startGame();
     } else if (gameState === 'playing') {
@@ -412,7 +455,7 @@ let pipes = [];
     }
   }
 
-  // safe attach handlers (avoid duplicates if script reloaded)
+  // safe attach handlers
   document.removeEventListener('keydown', handleKey);
   document.addEventListener('keydown', handleKey, { passive: false });
 
@@ -422,6 +465,28 @@ let pipes = [];
   document.removeEventListener('touchstart', handlePointerDown);
   document.addEventListener('touchstart', handlePointerDown, { passive: false });
 
+  // sound toggle button (on start screen)
+  let soundToggleButton = null;
+
+  function updateSoundButton() {
+    if (!soundToggleButton) return;
+    soundToggleButton.textContent = soundEnabled ? 'Sound: ON' : 'Sound: OFF';
+  }
+
+  if (startScreen) {
+    soundToggleButton = document.createElement('button');
+    soundToggleButton.id = 'soundToggleButton';
+    soundToggleButton.className = 'button';
+    soundToggleButton.style.marginLeft = '12px';
+    soundToggleButton.textContent = 'Sound: ON';
+    soundToggleButton.addEventListener('click', e => {
+      e.stopPropagation();
+      soundEnabled = !soundEnabled;
+      updateSoundButton();
+    });
+    startScreen.appendChild(soundToggleButton);
+  }
+
   // button wiring
   if (startButton) {
     startButton.addEventListener('click', startGame);
@@ -430,6 +495,6 @@ let pipes = [];
     restartButton.addEventListener('click', startGame);
   }
 
-  // Show initial UI
+  // initial UI
   showStartScreen();
 })();
