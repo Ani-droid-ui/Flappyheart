@@ -1,4 +1,3 @@
-```javascript name=script.js url=https://github.com/Ani-droid-ui/Flappyheart/blob/main/script.js
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -19,28 +18,33 @@ const heartSize = 35;
 let heartX = 50;
 let heartY = 250;
 let velocity = 0;
-
-// Tuned to make jumping faster (stronger impulse & snappier) while keeping a controlled feel:
-const gravity = 0.5;        // slightly stronger gravity for quicker arcs
-const jumpStrength = -9.0;  // stronger upward impulse for faster jumps
-const terminalVelocity = 16; // cap fall/jump speed
+const gravity = 0.25;
+const jumpStrength = -6;
 
 const pipeWidth = 60;
 const pipeGap = 180;
 const pipeSpacing = 250;
-// Pipes are faster overall and accelerate more with score:
-const basePipeSpeed = 3.6;   // faster starting pipe speed
+const basePipeSpeed = 1.8;
 let currentPipeSpeed = basePipeSpeed;
 let pipes = [];
 
+// Pellets support two types: pink (+1) common, yellow (+3) rarer
 let pellets = [];
 const pelletSize = 20;
-const pelletColor = '#ff69b4';
+const pinkPelletColor = '#ff69b4';
+const yellowPelletColor = '#ffd54f';
+const pinkPelletValue = 1;
+const yellowPelletValue = 3;
+
+// When spawning a pellet, overall spawn chance per frame:
+const pelletSpawnChance = 0.01;
+// When a pellet spawns, probability that it's yellow (rarer)
+const yellowProbability = 0.12;
 
 let score = 0;
 let gameState = 'start';
 let loopId = null;
-let highScore = parseInt(localStorage.getItem('flappyHighScore')) || 0;
+let highScore = localStorage.getItem('flappyHighScore') || 0;
 
 function setCanvasSize() {
   canvas.width = Math.min(window.innerWidth, 400);
@@ -98,10 +102,17 @@ function drawPipes() {
 function drawPellets() {
   pellets.forEach(p => {
     if (!p.collected) {
-      ctx.fillStyle = p.color || pelletColor;
+      ctx.fillStyle = p.color || pinkPelletColor;
       ctx.beginPath();
       ctx.arc(p.x + pelletSize / 2, p.y + pelletSize / 2, pelletSize / 2, 0, Math.PI * 2);
       ctx.fill();
+
+      // Distinguish yellow pellets with a subtle darker rim
+      if (p.type === 'yellow') {
+        ctx.strokeStyle = '#c89b1f';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
     }
   });
 }
@@ -156,8 +167,8 @@ function showGameOverScreen() {
 
 function jump() {
   if (gameState === 'playing') {
-    // stronger, faster jump impulse
     velocity = jumpStrength;
+    // ensure the jump sound plays every time
     try { jumpSound.currentTime = 0; } catch (e) {}
     jumpSound.play().catch(() => {});
   }
@@ -194,21 +205,15 @@ function endGame() {
 function update() {
   if (gameState !== 'playing') return;
 
-  // apply gravity and clamp velocity
   velocity += gravity;
-  if (velocity > terminalVelocity) velocity = terminalVelocity;
-  if (velocity < -terminalVelocity) velocity = -terminalVelocity;
-
   heartY += velocity;
 
   if (heartY + heartSize > canvas.height || heartY < 0) {
     endGame();
   }
 
-  // move pipes (faster)
   pipes.forEach(pipe => pipe.x -= currentPipeSpeed);
 
-  // spawn new pipes
   if (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - pipeSpacing) {
     const pipeHeight = Math.floor(Math.random() * (canvas.height - pipeGap - 100)) + 50;
     pipes.push({ x: canvas.width, y: 0, height: pipeHeight, passed: false });
@@ -220,8 +225,9 @@ function update() {
       pipe.passed = true;
       scoreSound.play();
 
-      // increase pipe speed more noticeably but moderately per score
-      currentPipeSpeed = Math.min(basePipeSpeed + score * 0.12, 8.0);
+      if (score % 2 === 0) {
+        currentPipeSpeed += 0.02;
+      }
     }
   });
 
@@ -229,7 +235,6 @@ function update() {
     pipes.shift();
   }
 
-  // collision with pipes
   pipes.forEach(pipe => {
     if (
       heartX < pipe.x + pipeWidth &&
@@ -243,15 +248,36 @@ function update() {
   // Pellet logic - move pellets
   pellets.forEach(p => p.x -= currentPipeSpeed);
 
-  // Spawn pellets inside gap (rare chance)
-  if (Math.random() < 0.01 && pipes.length > 0) {
+  // Spawn pellets only inside the gap (with margin) so they are reachable
+  if (Math.random() < pelletSpawnChance && pipes.length > 0) {
     const lastPipe = pipes[pipes.length - 1];
-    const safeMargin = 18; // keep pellets away from pipe edges
+    const safeMargin = 12; // keep pellets away from pipe edges
     const gapTop = lastPipe.height + safeMargin;
     const gapBottom = lastPipe.height + pipeGap - pelletSize - safeMargin;
+
     if (gapBottom > gapTop) {
       const pelletY = Math.floor(Math.random() * (gapBottom - gapTop)) + gapTop;
-      pellets.push({ x: canvas.width, y: pelletY, collected: false });
+
+      // Decide type: yellow is rarer but still spawnable
+      if (Math.random() < yellowProbability) {
+        pellets.push({
+          x: canvas.width,
+          y: pelletY,
+          collected: false,
+          color: yellowPelletColor,
+          value: yellowPelletValue,
+          type: 'yellow'
+        });
+      } else {
+        pellets.push({
+          x: canvas.width,
+          y: pelletY,
+          collected: false,
+          color: pinkPelletColor,
+          value: pinkPelletValue,
+          type: 'pink'
+        });
+      }
     }
   }
 
@@ -264,10 +290,11 @@ function update() {
       heartY + heartSize > p.y
     ) {
       p.collected = true;
-      score++;
+      score += (p.value || 1);
       scoreSound.play();
-      // small speed bump on collecting
-      currentPipeSpeed = Math.min(basePipeSpeed + score * 0.12, 8.0);
+
+      // slight speed bump for game pacing
+      currentPipeSpeed = Math.min(currentPipeSpeed + 0.005, 8.0);
     }
   });
 
@@ -300,4 +327,3 @@ function handleInput() {
 }
 
 showStartScreen();
-```
