@@ -21,9 +21,9 @@ heartImg.src = 'assets/heart.png';
 const heartSize = 35;
 let heartX = 50;
 let heartY = 250;
-let velocity = 0.1;
-const gravity = 0.3;
-const jumpStrength = -3;
+let velocity = 0;
+const gravity = 8;
+const jumpStrength = -11.3;
 
 const pipeWidth = 60;
 const pipeGap = 180;
