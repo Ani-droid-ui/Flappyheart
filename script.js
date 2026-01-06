@@ -19,12 +19,11 @@ let heartX = 50;
 let heartY = 250;
 let velocity = 0;
 
-// Physics tuned for snappier, less floaty jumps and faster falls
-const gravity = 1.1;           // stronger gravity for snappy movement
-const jumpStrength = -7.0;     // slightly less height than before but a quick impulse
-const fallMultiplier = 2.4;    // multiplies gravity while falling for a fast fall
-const terminalVelocity = 18;   // cap to prevent excessive speeds
-const shortHopMultiplier = 0.6;// scale applied on release to shorten jump
+// Physics tuned: fall and jump use the same gravity (no separate fall multiplier).
+// Gravity reduced a bit for "a little less downward force".
+const gravity = 0.85;        // unified gravity for ascent and descent
+const jumpStrength = -7.0;   // crisp jump impulse (snappy but not too tall)
+const terminalVelocity = 18; // cap so speed doesn't grow unbounded
 
 const pipeWidth = 60;
 const pipeGap = 180;
@@ -185,7 +184,14 @@ function jump() {
   if (gameState === 'playing') {
     // Reset vertical velocity to a crisp impulse for consistent, snappy jumps
     velocity = jumpStrength;
-    jumpSound.play();
+
+    // Ensure jump sound plays every time (reset playback position, play, ignore promise rejection)
+    try {
+      jumpSound.currentTime = 0;
+    } catch (e) {
+      // some browsers may throw if audio not ready; ignore
+    }
+    jumpSound.play().catch(() => {});
   }
 }
 
@@ -220,12 +226,8 @@ function endGame() {
 function update() {
   if (gameState !== 'playing') return;
 
-  // Apply gravity: stronger while falling for snappy falls
-  if (velocity > 0) {
-    velocity += gravity * fallMultiplier;
-  } else {
-    velocity += gravity;
-  }
+  // Apply unified gravity (same effect while rising and falling) for consistent responsiveness.
+  velocity += gravity;
 
   // Cap terminal velocity
   if (velocity > terminalVelocity) velocity = terminalVelocity;
@@ -329,11 +331,12 @@ function gameLoop() {
 // Input handlers tuned for responsiveness:
 // - Allow key auto-repeat (so quick consecutive jumps are possible by tapping/holding space).
 // - Short-hop reduces upward velocity on release for tighter control.
+const shortHopMultiplier = 0.6;
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Space') {
     e.preventDefault(); // prevent page scroll
     isHolding = true;
-    handleInput(); // allow auto-repeat to trigger repeated keydown events if the key is held
+    handleInput(); // allow auto-repeat to trigger repeated keydown events if key is held
   }
 });
 document.addEventListener('keyup', (e) => {
