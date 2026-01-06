@@ -22,13 +22,13 @@ const heartSize = 35;
 let heartX = 50;
 let heartY = 250;
 let velocity = 0.1;
-const gravity = 1;
-const jumpStrength = -10.5;
+const gravity = 0.3;
+const jumpStrength = -3;
 
 const pipeWidth = 60;
 const pipeGap = 180;
 const pipeSpacing = 250;
-const basePipeSpeed = 3;
+const basePipeSpeed = 0.5;
 let currentPipeSpeed = basePipeSpeed;
 let pipes = [];
 
