@@ -18,13 +18,15 @@ const heartSize = 35;
 let heartX = 50;
 let heartY = 250;
 let velocity = 0;
-const gravity = 0.25;
-const jumpStrength = -6;
+
+// Tuned physics & speed
+const gravity = 0.21;
+const jumpStrength = -5.8;
 
 const pipeWidth = 60;
 const pipeGap = 180;
 const pipeSpacing = 250;
-const basePipeSpeed = 1.8;
+const basePipeSpeed = 3.2; // faster starting speed
 let currentPipeSpeed = basePipeSpeed;
 let pipes = [];
 
@@ -35,7 +37,7 @@ const pelletColor = '#ff69b4';
 let score = 0;
 let gameState = 'start';
 let loopId = null;
-let highScore = localStorage.getItem('flappyHighScore') || 0;
+let highScore = parseInt(localStorage.getItem('flappyHighScore')) || 0;
 
 function setCanvasSize() {
   canvas.width = Math.min(window.innerWidth, 400);
@@ -76,16 +78,40 @@ function drawPipes() {
   pipes.forEach(pipe => {
     ctx.imageSmoothingEnabled = false;
 
+    // Main shaft
     ctx.fillStyle = '#a8d5a2';
     ctx.fillRect(pipe.x, pipe.y, pipeWidth, pipe.height);
     ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, pipeWidth, canvas.height - (pipe.y + pipe.height + pipeGap));
 
+    // Side highlights for cylindrical feel
     ctx.fillStyle = '#cbeac0';
-    ctx.fillRect(pipe.x, pipe.y, 4, pipe.height);
-    ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, 4, canvas.height - (pipe.y + pipe.height + pipeGap));
-
+    ctx.fillRect(pipe.x + 6, pipe.y, 6, pipe.height);
+    ctx.fillRect(pipe.x + 6, pipe.y + pipe.height + pipeGap, 6, canvas.height - (pipe.y + pipe.height + pipeGap));
     ctx.fillStyle = '#7fa87a';
+    ctx.fillRect(pipe.x + pipeWidth - 12, pipe.y, 6, pipe.height);
+    ctx.fillRect(pipe.x + pipeWidth - 12, pipe.y + pipe.height + pipeGap, 6, canvas.height - (pipe.y + pipe.height + pipeGap));
+
+    // Rounded cap on the bottom of the upper pipe (top pipe end)
+    ctx.save();
+    ctx.beginPath();
+    ctx.fillStyle = '#6fa464';
+    ctx.arc(pipe.x + pipeWidth / 2, pipe.y + pipe.height, pipeWidth / 2, Math.PI, 2 * Math.PI);
+    ctx.fill();
+    ctx.restore();
+
+    // Rounded cap on the top of the lower pipe (bottom pipe start)
+    ctx.save();
+    ctx.beginPath();
+    ctx.fillStyle = '#6fa464';
+    ctx.arc(pipe.x + pipeWidth / 2, pipe.y + pipe.height + pipeGap, pipeWidth / 2, 0, Math.PI);
+    ctx.fill();
+    ctx.restore();
+
+    // Darker edges/shadows
+    ctx.fillStyle = '#5c9064';
+    ctx.fillRect(pipe.x, pipe.y, 4, pipe.height);
     ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y, 4, pipe.height);
+    ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, 4, canvas.height - (pipe.y + pipe.height + pipeGap));
     ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y + pipe.height + pipeGap, 4, canvas.height - (pipe.y + pipe.height + pipeGap));
   });
 }
@@ -190,7 +216,10 @@ function update() {
   velocity += gravity;
   heartY += velocity;
 
-  if (heartY + heartSize > canvas.height || heartY < 0) {
+  // Cap heart within canvas to avoid flicker
+  heartY = Math.max(Math.min(heartY, canvas.height - heartSize), 0);
+
+  if (heartY + heartSize >= canvas.height || heartY <= 0) {
     endGame();
   }
 
@@ -207,9 +236,8 @@ function update() {
       pipe.passed = true;
       scoreSound.play();
 
-      if (score % 2 === 0) {
-        currentPipeSpeed += 0.02;
-      }
+      // Increase speed progressively with score but cap
+      currentPipeSpeed = Math.min(basePipeSpeed + score * 0.10, 6.5);
     }
   });
 
@@ -227,30 +255,25 @@ function update() {
     }
   });
 
-  // Pellet logic
+  // Pellet logic - move pellets
   pellets.forEach(p => p.x -= currentPipeSpeed);
 
-  if (Math.random() < 0.01 && pipes.length > 0) {
+  // Spawn pellets only inside the gap (with margin) so they are reachable
+  if (Math.random() < 0.014 && pipes.length > 0) {
     const lastPipe = pipes[pipes.length - 1];
-    const safeMargin = 10;
 
-    const safeZones = [
-      { min: 0, max: lastPipe.height - pelletSize - safeMargin },
-      { min: lastPipe.height + pipeGap + safeMargin, max: canvas.height - pelletSize }
-    ];
+    const safeMargin = 22;
+    const gapTop = lastPipe.height + safeMargin;
+    const gapBottom = lastPipe.height + pipeGap - pelletSize - safeMargin;
 
-const zone = safeZones[Math.floor(Math.random() * safeZones.length)];
-const bandCount = 3;
-const bandHeight = (zone.max - zone.min) / bandCount;
-const bandIndex = Math.floor(Math.random() * bandCount);
-const pelletY = zone.min + bandIndex * bandHeight + bandHeight / 2 - pelletSize / 2;
-
-
-    pellets.push({
-      x: canvas.width,
-      y: pelletY,
-      collected: false
-    });
+    if (gapBottom > gapTop) {
+      const pelletY = Math.floor(Math.random() * (gapBottom - gapTop)) + gapTop;
+      pellets.push({
+        x: canvas.width,
+        y: pelletY,
+        collected: false
+      });
+    }
   }
 
   pellets.forEach(p => {
@@ -264,6 +287,9 @@ const pelletY = zone.min + bandIndex * bandHeight + bandHeight / 2 - pelletSize 
       p.collected = true;
       score++;
       scoreSound.play();
+
+      // also slightly speed up when picking up points
+      currentPipeSpeed = Math.min(basePipeSpeed + score * 0.10, 6.5);
     }
   });
 
@@ -284,7 +310,10 @@ function gameLoop() {
 }
 
 document.addEventListener('keydown', (e) => {
-  if (e.code === 'Space') handleInput();
+  if (e.code === 'Space') {
+    e.preventDefault(); // prevent page scroll
+    handleInput();
+  }
 });
 document.addEventListener('mousedown', handleInput);
 document.addEventListener('touchstart', handleInput); // Mobile tap support
@@ -296,4 +325,3 @@ function handleInput() {
 }
 
 showStartScreen();
-
