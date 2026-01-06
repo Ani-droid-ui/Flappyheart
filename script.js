@@ -21,8 +21,8 @@ let velocity = 0;
 
 // Physics tuned to be less snappy and more realistic, with a slightly higher but not excessive jump.
 // Unified gravity used for ascent/descent so jump and fall feel consistent.
-const gravity = 0.95;        // reduced gravity for smoother (less snappy) movement
-const jumpStrength = -11;   // stronger impulse to make jumps a bit higher (but not too high)
+const gravity = 0.55;        // reduced gravity for smoother (less snappy) movement
+const jumpStrength = -8.6;   // stronger impulse to make jumps a bit higher (but not too high)
 const terminalVelocity = 14; // lower cap to keep movement feeling controlled
 
 const pipeWidth = 60;
@@ -32,9 +32,15 @@ const basePipeSpeed = 3.2; // starting speed
 let currentPipeSpeed = basePipeSpeed;
 let pipes = [];
 
+// Pellets now support types. Pink = +1 (common), Yellow = +3 (rarer)
 let pellets = [];
 const pelletSize = 20;
-const pelletColor = '#ff69b4';
+const pinkPelletColor = '#ff69b4';
+const yellowPelletColor = '#ffd54f';
+const pinkPelletValue = 1;
+const yellowPelletValue = 3;
+const pinkSpawnChance = 0.014;
+const yellowSpawnChance = 0.004; // rarer than pink
 
 let score = 0;
 let gameState = 'start';
@@ -124,10 +130,17 @@ function drawPipes() {
 function drawPellets() {
   pellets.forEach(p => {
     if (!p.collected) {
-      ctx.fillStyle = pelletColor;
+      ctx.fillStyle = p.color;
       ctx.beginPath();
       ctx.arc(p.x + pelletSize / 2, p.y + pelletSize / 2, pelletSize / 2, 0, Math.PI * 2);
       ctx.fill();
+
+      // Give yellow pellets a small darker rim to distinguish them
+      if (p.type === 'yellow') {
+        ctx.strokeStyle = '#c89b1f';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
     }
   });
 }
@@ -277,21 +290,37 @@ function update() {
   // Pellet logic - move pellets
   pellets.forEach(p => p.x -= currentPipeSpeed);
 
-  // Spawn pellets only inside the gap (with margin) so they are reachable
-  if (Math.random() < 0.014 && pipes.length > 0) {
+  // Spawn pellets only inside the gap (with margin) so they are reachable.
+  // Yellow pellets are rarer than pink pellets.
+  if (pipes.length > 0) {
     const lastPipe = pipes[pipes.length - 1];
-
     const safeMargin = 22;
     const gapTop = lastPipe.height + safeMargin;
     const gapBottom = lastPipe.height + pipeGap - pelletSize - safeMargin;
 
     if (gapBottom > gapTop) {
-      const pelletY = Math.floor(Math.random() * (gapBottom - gapTop)) + gapTop;
-      pellets.push({
-        x: canvas.width,
-        y: pelletY,
-        collected: false
-      });
+      // Try spawn yellow first (rarer)
+      if (Math.random() < yellowSpawnChance) {
+        const pelletY = Math.floor(Math.random() * (gapBottom - gapTop)) + gapTop;
+        pellets.push({
+          x: canvas.width,
+          y: pelletY,
+          collected: false,
+          type: 'yellow',
+          color: yellowPelletColor,
+          value: yellowPelletValue
+        });
+      } else if (Math.random() < pinkSpawnChance) {
+        const pelletY = Math.floor(Math.random() * (gapBottom - gapTop)) + gapTop;
+        pellets.push({
+          x: canvas.width,
+          y: pelletY,
+          collected: false,
+          type: 'pink',
+          color: pinkPelletColor,
+          value: pinkPelletValue
+        });
+      }
     }
   }
 
@@ -304,7 +333,7 @@ function update() {
       heartY + heartSize > p.y
     ) {
       p.collected = true;
-      score++;
+      score += (p.value || 1);
       scoreSound.play();
 
       // also slightly speed up when picking up points
