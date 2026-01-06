@@ -19,9 +19,11 @@ let heartX = 50;
 let heartY = 250;
 let velocity = 0;
 
-// Tuned physics & speed
-const gravity = 0.21;
-const jumpStrength = -5.8;
+// Tuned physics to remove floatiness (snappier jump & quicker fall)
+const gravity = 0.7;         // stronger gravity => quicker pulls down
+const jumpStrength = -8.2;   // sharper, snappier jump impulse
+const fallMultiplier = 1.9;  // multiplies gravity while falling for fast fall
+const terminalVelocity = 16; // cap so speed doesn't grow unbounded
 
 const pipeWidth = 60;
 const pipeGap = 180;
@@ -38,6 +40,9 @@ let score = 0;
 let gameState = 'start';
 let loopId = null;
 let highScore = parseInt(localStorage.getItem('flappyHighScore')) || 0;
+
+// Input-hold tracking to allow short-hops when releasing quickly
+let isHolding = false;
 
 function setCanvasSize() {
   canvas.width = Math.min(window.innerWidth, 400);
@@ -213,7 +218,17 @@ function endGame() {
 function update() {
   if (gameState !== 'playing') return;
 
-  velocity += gravity;
+  // Apply gravity. Use a stronger multiplier while falling to make falls quick.
+  if (velocity > 0) {
+    velocity += gravity * fallMultiplier;
+  } else {
+    velocity += gravity;
+  }
+
+  // Cap terminal velocity
+  if (velocity > terminalVelocity) velocity = terminalVelocity;
+  if (velocity < -terminalVelocity) velocity = -terminalVelocity;
+
   heartY += velocity;
 
   // Cap heart within canvas to avoid flicker
@@ -309,14 +324,42 @@ function gameLoop() {
   }
 }
 
+// Input handlers: track holds so release can create a short-hop (less float)
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Space') {
     e.preventDefault(); // prevent page scroll
-    handleInput();
+    if (!isHolding) {
+      isHolding = true;
+      handleInput();
+    }
   }
 });
-document.addEventListener('mousedown', handleInput);
-document.addEventListener('touchstart', handleInput); // Mobile tap support
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'Space') {
+    isHolding = false;
+    // Short-hop behavior: if player releases while ascending, quickly reduce upward velocity
+    if (velocity < 0) velocity *= 0.45;
+  }
+});
+
+document.addEventListener('mousedown', (e) => {
+  isHolding = true;
+  handleInput();
+});
+document.addEventListener('mouseup', (e) => {
+  isHolding = false;
+  if (velocity < 0) velocity *= 0.45;
+});
+
+document.addEventListener('touchstart', (e) => {
+  isHolding = true;
+  handleInput();
+}, {passive: false});
+document.addEventListener('touchend', (e) => {
+  isHolding = false;
+  if (velocity < 0) velocity *= 0.45;
+});
+
 startButton.addEventListener('click', startGame);
 restartButton.addEventListener('click', startGame);
 
