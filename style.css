@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Louis+George+Cafe&display=swap');
+
 /* Base layout */
 body {
   margin: 0;
@@ -100,4 +102,17 @@ canvas {
   text-shadow: 1px 1px #fff;
   z-index: 10;
   font-family: 'Press Start 2P', cursive;
+}
+
+/* How-to text styling: centered, slightly smaller, uses Louis George Cafe (with fallbacks)
+   The !important is used to override any inline styles that may be present in the markup. */
+#howToText {
+  max-width: 360px;
+  margin: 0 auto;
+  text-align: center !important;
+  font-family: 'Louis George Cafe', 'Press Start 2P', 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  color: #444;
+  word-wrap: break-word;
 }
