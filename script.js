@@ -28,7 +28,7 @@ const jumpStrength = -10.5;
 const pipeWidth = 60;
 const pipeGap = 180;
 const pipeSpacing = 250;
-const basePipeSpeed = 1.8;
+const basePipeSpeed = 3;
 let currentPipeSpeed = basePipeSpeed;
 let pipes = [];
 
