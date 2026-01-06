@@ -19,16 +19,17 @@ let heartX = 50;
 let heartY = 250;
 let velocity = 0;
 
-// Tuned physics to remove floatiness (snappier jump & quicker fall)
-const gravity = 0.7;         // stronger gravity => quicker pulls down
-const jumpStrength = -8.2;   // sharper, snappier jump impulse
-const fallMultiplier = 1.9;  // multiplies gravity while falling for fast fall
-const terminalVelocity = 16; // cap so speed doesn't grow unbounded
+// Physics tuned for snappier, less floaty jumps and faster falls
+const gravity = 1.1;           // stronger gravity for snappy movement
+const jumpStrength = -7.0;     // slightly less height than before but a quick impulse
+const fallMultiplier = 2.4;    // multiplies gravity while falling for a fast fall
+const terminalVelocity = 18;   // cap to prevent excessive speeds
+const shortHopMultiplier = 0.6;// scale applied on release to shorten jump
 
 const pipeWidth = 60;
 const pipeGap = 180;
 const pipeSpacing = 250;
-const basePipeSpeed = 3.2; // faster starting speed
+const basePipeSpeed = 3.2; // starting speed
 let currentPipeSpeed = basePipeSpeed;
 let pipes = [];
 
@@ -41,7 +42,7 @@ let gameState = 'start';
 let loopId = null;
 let highScore = parseInt(localStorage.getItem('flappyHighScore')) || 0;
 
-// Input-hold tracking to allow short-hops when releasing quickly
+// Input-hold tracking (used for short-hop behavior)
 let isHolding = false;
 
 function setCanvasSize() {
@@ -182,6 +183,7 @@ function showGameOverScreen() {
 
 function jump() {
   if (gameState === 'playing') {
+    // Reset vertical velocity to a crisp impulse for consistent, snappy jumps
     velocity = jumpStrength;
     jumpSound.play();
   }
@@ -218,7 +220,7 @@ function endGame() {
 function update() {
   if (gameState !== 'playing') return;
 
-  // Apply gravity. Use a stronger multiplier while falling to make falls quick.
+  // Apply gravity: stronger while falling for snappy falls
   if (velocity > 0) {
     velocity += gravity * fallMultiplier;
   } else {
@@ -251,8 +253,8 @@ function update() {
       pipe.passed = true;
       scoreSound.play();
 
-      // Increase speed progressively with score but cap
-      currentPipeSpeed = Math.min(basePipeSpeed + score * 0.10, 6.5);
+      // Slower acceleration with score (less aggressive increase)
+      currentPipeSpeed = Math.min(basePipeSpeed + score * 0.06, 7.0);
     }
   });
 
@@ -304,7 +306,7 @@ function update() {
       scoreSound.play();
 
       // also slightly speed up when picking up points
-      currentPipeSpeed = Math.min(basePipeSpeed + score * 0.10, 6.5);
+      currentPipeSpeed = Math.min(basePipeSpeed + score * 0.06, 7.0);
     }
   });
 
@@ -324,21 +326,21 @@ function gameLoop() {
   }
 }
 
-// Input handlers: track holds so release can create a short-hop (less float)
+// Input handlers tuned for responsiveness:
+// - Allow key auto-repeat (so quick consecutive jumps are possible by tapping/holding space).
+// - Short-hop reduces upward velocity on release for tighter control.
 document.addEventListener('keydown', (e) => {
   if (e.code === 'Space') {
     e.preventDefault(); // prevent page scroll
-    if (!isHolding) {
-      isHolding = true;
-      handleInput();
-    }
+    isHolding = true;
+    handleInput(); // allow auto-repeat to trigger repeated keydown events if the key is held
   }
 });
 document.addEventListener('keyup', (e) => {
   if (e.code === 'Space') {
     isHolding = false;
-    // Short-hop behavior: if player releases while ascending, quickly reduce upward velocity
-    if (velocity < 0) velocity *= 0.45;
+    // Short-hop: reduce upward velocity to limit height and make jumps more responsive
+    if (velocity < 0) velocity *= shortHopMultiplier;
   }
 });
 
@@ -348,7 +350,7 @@ document.addEventListener('mousedown', (e) => {
 });
 document.addEventListener('mouseup', (e) => {
   isHolding = false;
-  if (velocity < 0) velocity *= 0.45;
+  if (velocity < 0) velocity *= shortHopMultiplier;
 });
 
 document.addEventListener('touchstart', (e) => {
@@ -357,7 +359,7 @@ document.addEventListener('touchstart', (e) => {
 }, {passive: false});
 document.addEventListener('touchend', (e) => {
   isHolding = false;
-  if (velocity < 0) velocity *= 0.45;
+  if (velocity < 0) velocity *= shortHopMultiplier;
 });
 
 startButton.addEventListener('click', startGame);
