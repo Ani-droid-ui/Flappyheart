@@ -2,8 +2,12 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 const startScreen = document.getElementById('startScreen');
+const howToScreen = document.getElementById('howToScreen');
 const gameOverScreen = document.getElementById('gameOverScreen');
 const startButton = document.getElementById('startButton');
+const howToButton = document.getElementById('howToButton');
+const howBackButton = document.getElementById('howBackButton');
+const howToText = document.getElementById('howToText');
 const restartButton = document.getElementById('restartButton');
 const finalScoreDisplay = document.getElementById('finalScore');
 
@@ -18,37 +22,24 @@ const heartSize = 35;
 let heartX = 50;
 let heartY = 250;
 let velocity = 0;
-
-// Physics tuned to be less snappy and more realistic, with a slightly higher but not excessive jump.
-// Unified gravity used for ascent/descent so jump and fall feel consistent.
-const gravity = 0.55;        // reduced gravity for smoother (less snappy) movement
-const jumpStrength = -8.6;   // stronger impulse to make jumps a bit higher (but not too high)
-const terminalVelocity = 14; // lower cap to keep movement feeling controlled
+const gravity = 0.25;
+const jumpStrength = -6;
 
 const pipeWidth = 60;
 const pipeGap = 180;
 const pipeSpacing = 250;
-const basePipeSpeed = 3.2; // starting speed
+const basePipeSpeed = 1.8;
 let currentPipeSpeed = basePipeSpeed;
 let pipes = [];
 
-// Pellets now support types. Pink = +1 (common), Yellow = +3 (rarer)
 let pellets = [];
 const pelletSize = 20;
-const pinkPelletColor = '#ff69b4';
-const yellowPelletColor = '#ffd54f';
-const pinkPelletValue = 1;
-const yellowPelletValue = 3;
-const pinkSpawnChance = 0.014;
-const yellowSpawnChance = 0.004; // rarer than pink
+const pelletColor = '#ff69b4';
 
 let score = 0;
 let gameState = 'start';
 let loopId = null;
-let highScore = parseInt(localStorage.getItem('flappyHighScore')) || 0;
-
-// Input-hold tracking (used for short-hop behavior)
-let isHolding = false;
+let highScore = localStorage.getItem('flappyHighScore') || 0;
 
 function setCanvasSize() {
   canvas.width = Math.min(window.innerWidth, 400);
@@ -89,40 +80,16 @@ function drawPipes() {
   pipes.forEach(pipe => {
     ctx.imageSmoothingEnabled = false;
 
-    // Main shaft
     ctx.fillStyle = '#a8d5a2';
     ctx.fillRect(pipe.x, pipe.y, pipeWidth, pipe.height);
     ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, pipeWidth, canvas.height - (pipe.y + pipe.height + pipeGap));
 
-    // Side highlights for cylindrical feel
     ctx.fillStyle = '#cbeac0';
-    ctx.fillRect(pipe.x + 6, pipe.y, 6, pipe.height);
-    ctx.fillRect(pipe.x + 6, pipe.y + pipe.height + pipeGap, 6, canvas.height - (pipe.y + pipe.height + pipeGap));
-    ctx.fillStyle = '#7fa87a';
-    ctx.fillRect(pipe.x + pipeWidth - 12, pipe.y, 6, pipe.height);
-    ctx.fillRect(pipe.x + pipeWidth - 12, pipe.y + pipe.height + pipeGap, 6, canvas.height - (pipe.y + pipe.height + pipeGap));
-
-    // Rounded cap on the bottom of the upper pipe (top pipe end)
-    ctx.save();
-    ctx.beginPath();
-    ctx.fillStyle = '#6fa464';
-    ctx.arc(pipe.x + pipeWidth / 2, pipe.y + pipe.height, pipeWidth / 2, Math.PI, 2 * Math.PI);
-    ctx.fill();
-    ctx.restore();
-
-    // Rounded cap on the top of the lower pipe (bottom pipe start)
-    ctx.save();
-    ctx.beginPath();
-    ctx.fillStyle = '#6fa464';
-    ctx.arc(pipe.x + pipeWidth / 2, pipe.y + pipe.height + pipeGap, pipeWidth / 2, 0, Math.PI);
-    ctx.fill();
-    ctx.restore();
-
-    // Darker edges/shadows
-    ctx.fillStyle = '#5c9064';
     ctx.fillRect(pipe.x, pipe.y, 4, pipe.height);
-    ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y, 4, pipe.height);
     ctx.fillRect(pipe.x, pipe.y + pipe.height + pipeGap, 4, canvas.height - (pipe.y + pipe.height + pipeGap));
+
+    ctx.fillStyle = '#7fa87a';
+    ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y, 4, pipe.height);
     ctx.fillRect(pipe.x + pipeWidth - 4, pipe.y + pipe.height + pipeGap, 4, canvas.height - (pipe.y + pipe.height + pipeGap));
   });
 }
@@ -130,17 +97,10 @@ function drawPipes() {
 function drawPellets() {
   pellets.forEach(p => {
     if (!p.collected) {
-      ctx.fillStyle = p.color;
+      ctx.fillStyle = p.color || pelletColor;
       ctx.beginPath();
       ctx.arc(p.x + pelletSize / 2, p.y + pelletSize / 2, pelletSize / 2, 0, Math.PI * 2);
       ctx.fill();
-
-      // Give yellow pellets a small darker rim to distinguish them
-      if (p.type === 'yellow') {
-        ctx.strokeStyle = '#c89b1f';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
     }
   });
 }
@@ -150,6 +110,7 @@ function drawScore() {
 }
 
 function showStartScreen() {
+  howToScreen.classList.add('hidden');
   startScreen.classList.remove('hidden');
   gameOverScreen.classList.add('hidden');
   document.querySelector('.score-container').style.display = 'none';
@@ -167,13 +128,23 @@ function showStartScreen() {
   }
 }
 
+function showHowToScreen() {
+  // Display how-to overlay and hide others
+  startScreen.classList.add('hidden');
+  howToScreen.classList.remove('hidden');
+  gameOverScreen.classList.add('hidden');
+  document.querySelector('.score-container').style.display = 'none';
+}
+
 function hideAllScreens() {
+  howToScreen.classList.add('hidden');
   startScreen.classList.add('hidden');
   gameOverScreen.classList.add('hidden');
   document.querySelector('.score-container').style.display = 'block';
 }
 
 function showGameOverScreen() {
+  howToScreen.classList.add('hidden');
   gameOverScreen.classList.remove('hidden');
   finalScoreDisplay.textContent = score;
 
@@ -195,15 +166,9 @@ function showGameOverScreen() {
 
 function jump() {
   if (gameState === 'playing') {
-    // Reset vertical velocity to a consistent impulse for reliable consecutive jumps
     velocity = jumpStrength;
-
-    // Ensure jump sound plays every time (reset playback position, play, ignore promise rejection)
-    try {
-      jumpSound.currentTime = 0;
-    } catch (e) {
-      // ignore if audio not ready
-    }
+    // ensure the jump sound plays every time
+    try { jumpSound.currentTime = 0; } catch (e) {}
     jumpSound.play().catch(() => {});
   }
 }
@@ -239,19 +204,10 @@ function endGame() {
 function update() {
   if (gameState !== 'playing') return;
 
-  // Apply unified gravity for ascent and descent to keep jump/fall consistent and more realistic.
   velocity += gravity;
-
-  // Cap terminal velocity
-  if (velocity > terminalVelocity) velocity = terminalVelocity;
-  if (velocity < -terminalVelocity) velocity = -terminalVelocity;
-
   heartY += velocity;
 
-  // Cap heart within canvas to avoid flicker
-  heartY = Math.max(Math.min(heartY, canvas.height - heartSize), 0);
-
-  if (heartY + heartSize >= canvas.height || heartY <= 0) {
+  if (heartY + heartSize > canvas.height || heartY < 0) {
     endGame();
   }
 
@@ -268,8 +224,9 @@ function update() {
       pipe.passed = true;
       scoreSound.play();
 
-      // Slower acceleration with score (less aggressive increase)
-      currentPipeSpeed = Math.min(basePipeSpeed + score * 0.06, 7.0);
+      if (score % 2 === 0) {
+        currentPipeSpeed += 0.02;
+      }
     }
   });
 
@@ -287,40 +244,43 @@ function update() {
     }
   });
 
-  // Pellet logic - move pellets
+  // Pellet logic
   pellets.forEach(p => p.x -= currentPipeSpeed);
 
-  // Spawn pellets only inside the gap (with margin) so they are reachable.
-  // Yellow pellets are rarer than pink pellets.
-  if (pipes.length > 0) {
+  if (Math.random() < 0.01 && pipes.length > 0) {
     const lastPipe = pipes[pipes.length - 1];
-    const safeMargin = 22;
-    const gapTop = lastPipe.height + safeMargin;
-    const gapBottom = lastPipe.height + pipeGap - pelletSize - safeMargin;
+    const safeMargin = 10;
 
-    if (gapBottom > gapTop) {
-      // Try spawn yellow first (rarer)
-      if (Math.random() < yellowSpawnChance) {
-        const pelletY = Math.floor(Math.random() * (gapBottom - gapTop)) + gapTop;
-        pellets.push({
-          x: canvas.width,
-          y: pelletY,
-          collected: false,
-          type: 'yellow',
-          color: yellowPelletColor,
-          value: yellowPelletValue
-        });
-      } else if (Math.random() < pinkSpawnChance) {
-        const pelletY = Math.floor(Math.random() * (gapBottom - gapTop)) + gapTop;
-        pellets.push({
-          x: canvas.width,
-          y: pelletY,
-          collected: false,
-          type: 'pink',
-          color: pinkPelletColor,
-          value: pinkPelletValue
-        });
-      }
+    const safeZones = [
+      { min: 0, max: lastPipe.height - pelletSize - safeMargin },
+      { min: lastPipe.height + pipeGap + safeMargin, max: canvas.height - pelletSize }
+    ];
+
+    const zone = safeZones[Math.floor(Math.random() * safeZones.length)];
+    const bandCount = 3;
+    const bandHeight = (zone.max - zone.min) / bandCount;
+    const bandIndex = Math.floor(Math.random() * bandCount);
+    const pelletY = zone.min + bandIndex * bandHeight + bandHeight / 2 - pelletSize / 2;
+
+    // Decide type: yellow rarer than pink
+    if (Math.random() < 0.12) {
+      // yellow pellet
+      pellets.push({
+        x: canvas.width,
+        y: pelletY,
+        collected: false,
+        color: '#ffd54f',
+        value: 3
+      });
+    } else {
+      // pink pellet
+      pellets.push({
+        x: canvas.width,
+        y: pelletY,
+        collected: false,
+        color: '#ff69b4',
+        value: 1
+      });
     }
   }
 
@@ -335,9 +295,6 @@ function update() {
       p.collected = true;
       score += (p.value || 1);
       scoreSound.play();
-
-      // also slightly speed up when picking up points
-      currentPipeSpeed = Math.min(basePipeSpeed + score * 0.06, 7.0);
     }
   });
 
@@ -357,45 +314,20 @@ function gameLoop() {
   }
 }
 
-// Input handlers tuned for responsiveness:
-// - Allow key auto-repeat (so quick consecutive jumps are possible by tapping/holding space).
-// - Short-hop reduces upward velocity on release for tighter control.
-const shortHopMultiplier = 0.75;
 document.addEventListener('keydown', (e) => {
-  if (e.code === 'Space') {
-    e.preventDefault(); // prevent page scroll
-    isHolding = true;
-    handleInput(); // allow auto-repeat to trigger repeated keydown events if key is held
-  }
+  if (e.code === 'Space') handleInput();
 });
-document.addEventListener('keyup', (e) => {
-  if (e.code === 'Space') {
-    isHolding = false;
-    // Short-hop: reduce upward velocity to limit height and make jumps more responsive
-    if (velocity < 0) velocity *= shortHopMultiplier;
-  }
-});
-
-document.addEventListener('mousedown', (e) => {
-  isHolding = true;
-  handleInput();
-});
-document.addEventListener('mouseup', (e) => {
-  isHolding = false;
-  if (velocity < 0) velocity *= shortHopMultiplier;
-});
-
-document.addEventListener('touchstart', (e) => {
-  isHolding = true;
-  handleInput();
-}, {passive: false});
-document.addEventListener('touchend', (e) => {
-  isHolding = false;
-  if (velocity < 0) velocity *= shortHopMultiplier;
-});
-
+document.addEventListener('mousedown', handleInput);
+document.addEventListener('touchstart', handleInput); // Mobile tap support
 startButton.addEventListener('click', startGame);
 restartButton.addEventListener('click', startGame);
+
+// How-to interactions
+howToButton.addEventListener('click', showHowToScreen);
+howBackButton.addEventListener('click', showStartScreen);
+
+// Optional: allow editing the how-to text dynamically from console, e.g.:
+// document.getElementById('howToText').innerHTML = '<p>Your custom how-to text</p>';
 
 function handleInput() {
   if (gameState === 'playing') jump();
