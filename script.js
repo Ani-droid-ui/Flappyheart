@@ -31,18 +31,16 @@
   let heartY = 250;
   let velocity = 0;
 
-  // physics & speed tuning
-  const gravity = 0.55;        // gravity applied each frame
-  const jumpStrength = -10;  // upward impulse on jump
-  const terminalVelocity = 18;
+const gravity = 0.6;
+const jumpStrength = -9.5;
+const terminalVelocity = 16;
 
-  // pipes
-  const pipeWidth = 60;
-  const pipeGap = 180;
-  const pipeSpacing = 300;
-  const basePipeSpeed = 2; // faster starting pipes
-  let currentPipeSpeed = basePipeSpeed;
-  let pipes = [];
+const pipeWidth = 60;
+const pipeGap = 160;
+const pipeSpacing = 280;
+const basePipeSpeed = 2.4;
+let currentPipeSpeed = basePipeSpeed;
+let pipes = [];
 
   // pellets (pink common, yellow rarer)
   let pellets = [];
