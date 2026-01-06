@@ -34,7 +34,7 @@
   let heartY = 250;
   let velocity = 0;
 
-  const gravity = 0.40;
+  const gravity = 0.58;
   const jumpStrength = -10;
   const terminalVelocity = 12;
 
