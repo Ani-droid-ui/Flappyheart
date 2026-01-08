@@ -35,7 +35,7 @@
   let velocity = 0;
 
   const gravity = 0.58;
-  const jumpStrength = -6;
+  const jumpStrength = -7.6;
   const terminalVelocity = 12;
 
   const pipeWidth = 60;
