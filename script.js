@@ -34,15 +34,16 @@
   let heartY = 250;
   let velocity = 0;
 
-  const gravity = 0.6;
-  const jumpStrength = -7.9;
+  const gravity = 0.75;
+  const jumpStrength = -8.5;
   const terminalVelocity = 12;
 
   const pipeWidth = 60;
   const pipeGap = 200;
   const pipeSpacing = 300;
-  const basePipeSpeed = 2.0;
-  let currentPipeSpeed = basePipeSpeed;
+  const basePipeSpeed = 2.5;
+  const speedMultiplier = Math.log(score + 1) * 0.15; // Logarithmic scaling
+  currentPipeSpeed = Math.min(basePipeSpeed + speedMultiplier, 7.5);
   let pipes = [];
 
   // pellets (pink common, yellow rarer)
@@ -52,7 +53,7 @@
   const yellowPelletColor = '#ffd54f';
   const pinkPelletValue = 1;
   const yellowPelletValue = 3;
-  const pelletSpawnChance = 0.012; // per frame spawn chance when spawning conditions met
+  const pelletSpawnChance = 0.018; // per frame spawn chance when spawning conditions met
   const yellowProbability = 0.10; // 10% of pellets are yellow
 
   // score/state
