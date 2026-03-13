@@ -34,8 +34,8 @@
   let heartY = 250;
   let velocity = 0;
 
-  const gravity = 0.58;
-  const jumpStrength = -7.6;
+  const gravity = 0.6;
+  const jumpStrength = -7.9;
   const terminalVelocity = 12;
 
   const pipeWidth = 60;
